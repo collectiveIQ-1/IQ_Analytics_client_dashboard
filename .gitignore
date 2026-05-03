@@ -10,9 +10,13 @@ node_modules/
 
 # Credential / admin files — NEVER commit these
 admin*.txt
-*credentials*
-*password*
-*secret*
+*.credentials
+*.credentials.txt
+credentials.json
+*.pem
+*.key
+*.pfx
+*.p12
 
 # Build outputs
 dist/
