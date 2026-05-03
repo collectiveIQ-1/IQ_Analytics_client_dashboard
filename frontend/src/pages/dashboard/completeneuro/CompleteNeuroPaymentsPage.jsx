@@ -1,0 +1,419 @@
+/**
+ * CompleteNeuroPaymentsPage.jsx — Payments tab for Complete Neuro Dashboard.
+ *
+ * Layout:
+ *   Section 1: All Time Months Payment History — line chart (click to filter bar)
+ *   Section 2: Deposits bar chart with sub-tabs + month filter + category selection
+ */
+
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  LineChart, Line, BarChart, Bar, Cell,
+  ResponsiveContainer, XAxis, YAxis, Tooltip, LabelList, ReferenceLine,
+} from 'recharts';
+import { X } from 'lucide-react';
+import { completeneuroApi } from '../../../api/completeneuro.api';
+import { useTheme }         from '../../../contexts/ThemeContext';
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+
+const fmtMoney = (v) => {
+  const n = Number(v || 0);
+  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(n) >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n.toFixed(0)}`;
+};
+
+const fmtShortDate = (d) => {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return String(d);
+  return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+};
+
+const dateToYYYYMM = (d) => {
+  if (!d) return null;
+  const parts = String(d).split('-');
+  if (parts.length < 2) return null;
+  return `${parts[0]}-${parts[1]}`;
+};
+
+const fmtMonthLabel = (yyyyMM) => {
+  if (!yyyyMM) return '';
+  const [y, m] = yyyyMM.split('-');
+  const dt = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+  return dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+};
+
+// ── Chart type options ────────────────────────────────────────────────────────
+
+const CHART_TABS = [
+  { id: 'surgeon',      label: 'Surgeon Wise' },
+  { id: 'hospital',     label: 'Hospital Wise' },
+  { id: 'billing_type', label: 'Billing Type' },
+  { id: 'insurance',    label: 'Insurance Type' },
+];
+
+// ── Toggle button ─────────────────────────────────────────────────────────────
+
+function ToggleBtn({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+        active
+          ? 'bg-red-700 text-white shadow ring-2 ring-white/20'
+          : 'bg-[#991b1b] text-white hover:bg-red-800'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Tooltips ──────────────────────────────────────────────────────────────────
+
+function LineTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 font-semibold text-slate-700 dark:text-zinc-200">{fmtShortDate(label)}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-semibold">
+          {p.name}: {fmtMoney(p.value)}
+        </p>
+      ))}
+      <p className="mt-1 text-slate-400 dark:text-zinc-500 text-[10px]">Click to filter bar chart</p>
+    </div>
+  );
+}
+
+function BarTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0];
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs shadow-lg">
+      <p className="font-semibold text-slate-700 dark:text-zinc-200 mb-1">
+        {p.payload?.label || p.payload?.[Object.keys(p.payload)[0]]}
+      </p>
+      <p style={{ color: p.fill }} className="font-semibold">
+        Payment Collected: {fmtMoney(p.value)}
+      </p>
+    </div>
+  );
+}
+
+// ── Chart card wrapper ────────────────────────────────────────────────────────
+
+function ChartCard({ title, actions, height = 340, loading, children }) {
+  return (
+    <div
+      data-export-item
+      data-export-label={title}
+      data-export-id={title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
+      className="overflow-hidden rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4 border-b border-slate-50 dark:border-zinc-800/60">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-100">{title}</h3>
+        {actions && <div className="flex gap-1.5 flex-wrap">{actions}</div>}
+      </div>
+      <div className="px-4 pb-4 pt-2" style={{ height }}>
+        {loading
+          ? <div className="h-full animate-pulse rounded-xl bg-slate-50 dark:bg-zinc-900" />
+          : children}
+      </div>
+    </div>
+  );
+}
+
+// ── Custom dot — highlights selected month ────────────────────────────────────
+
+function LineDot({ cx, cy, payload, selectedMonth }) {
+  const m = dateToYYYYMM(payload?.date);
+  const isSelected = selectedMonth && m === selectedMonth;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={isSelected ? 7 : 4}
+      fill={isSelected ? '#b91c1c' : '#dc2626'}
+      stroke={isSelected ? '#fff' : 'none'}
+      strokeWidth={isSelected ? 2 : 0}
+    />
+  );
+}
+
+// ── Line label on chart points ────────────────────────────────────────────────
+
+function LinePointLabel({ x, y, value, index }) {
+  if (value == null) return null;
+  const dy = index % 2 === 0 ? -12 : 16;
+  return (
+    <text x={x} y={y + dy} textAnchor="middle" fontSize={10} fontWeight="700" fill="#dc2626">
+      {fmtMoney(value)}
+    </text>
+  );
+}
+
+// ── Horizontal bar label ──────────────────────────────────────────────────────
+
+function HBarLabel({ x, y, width, height: h, value }) {
+  if (!value) return null;
+  return (
+    <text x={x + width + 6} y={y + h / 2 + 4} fontSize={10} fontWeight="700" fill="#374151">
+      {fmtMoney(value)}
+    </text>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function CompleteNeuroPaymentsPage() {
+  const [chartType,         setChartType]         = useState('surgeon');
+  const [selectedMonth,     setSelectedMonth]     = useState(null);
+  const [selectedCategory,  setSelectedCategory]  = useState(null);
+
+  const { theme } = useTheme();
+  const isDark    = theme === 'dark';
+  const axisFill  = isDark ? '#94a3b8' : '#334155';
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
+
+  const handleChartTypeChange = (id) => {
+    setChartType(id);
+    setSelectedCategory(null);
+  };
+
+  const handleLineClick = (e) => {
+    if (!e?.activePayload?.[0]) return;
+    const date = e.activePayload[0].payload?.date;
+    const m    = dateToYYYYMM(date);
+    if (!m) return;
+    setSelectedMonth(prev => prev === m ? null : m);
+    setSelectedCategory(null);
+  };
+
+  const handleBarClick = (data) => {
+    const label = data?.label;
+    if (!label) return;
+    setSelectedCategory(prev => prev === label ? null : label);
+  };
+
+  const clearFilters = () => {
+    setSelectedMonth(null);
+    setSelectedCategory(null);
+  };
+
+  // ── Queries ───────────────────────────────────────────────────────────────
+
+  const { data: lineData, isLoading: lineLoad } = useQuery({
+    queryKey:  ['cn-pay-line'],
+    queryFn:   () => completeneuroApi.getPaymentLineChart().then(r => r.data.data),
+    staleTime: 300_000,
+  });
+
+  const { data: surgeonData, isLoading: surgeonLoad } = useQuery({
+    queryKey:  ['cn-pay-surgeon', selectedMonth],
+    queryFn:   () => completeneuroApi.getDepositsBySurgeon(selectedMonth).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled:   chartType === 'surgeon',
+  });
+
+  const { data: hospitalData, isLoading: hospitalLoad } = useQuery({
+    queryKey:  ['cn-pay-hospital', selectedMonth],
+    queryFn:   () => completeneuroApi.getDepositsByHospital(selectedMonth).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled:   chartType === 'hospital',
+  });
+
+  const { data: billingTypeData, isLoading: billingTypeLoad } = useQuery({
+    queryKey:  ['cn-pay-billing-type', selectedMonth],
+    queryFn:   () => completeneuroApi.getDepositsByBillingType(selectedMonth).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled:   chartType === 'billing_type',
+  });
+
+  const { data: insuranceData, isLoading: insuranceLoad } = useQuery({
+    queryKey:  ['cn-pay-insurance', selectedMonth],
+    queryFn:   () => completeneuroApi.getDepositsByInsuranceType(selectedMonth).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled:   chartType === 'insurance',
+  });
+
+  // ── Active bar chart data ─────────────────────────────────────────────────
+
+  const barConfig = {
+    surgeon:      { data: surgeonData,     key: 'surgeon',       loading: surgeonLoad,     color: '#1e2d5a' },
+    hospital:     { data: hospitalData,    key: 'hospital',      loading: hospitalLoad,    color: '#5f8ea0' },
+    billing_type: { data: billingTypeData, key: 'billing_type',  loading: billingTypeLoad, color: '#9b3060' },
+    insurance:    { data: insuranceData,   key: 'insurance_type',loading: insuranceLoad,   color: '#8a8a2c' },
+  };
+
+  const active     = barConfig[chartType];
+  const barData    = (active.data || []).map(r => ({ ...r, label: r[active.key] }));
+  const barHeight  = Math.max(300, barData.length * 36);
+  const leftMargin = chartType === 'hospital' ? 200 : chartType === 'insurance' ? 180 : 160;
+
+  // Find the reference line x value for selected month
+  const refLineX = selectedMonth
+    ? (lineData || []).find(d => dateToYYYYMM(d.date) === selectedMonth)?.date
+    : null;
+
+  const hasFilters = selectedMonth || selectedCategory;
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Section 1: All Time Months Payment History ── */}
+      <ChartCard title="All Time Months Payment History" loading={lineLoad} height={340}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={lineData || []}
+            margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+            onClick={handleLineClick}
+            style={{ cursor: 'pointer' }}
+          >
+            <XAxis
+              dataKey="date"
+              tickFormatter={fmtShortDate}
+              tick={{ fontSize: 10, fill: '#64748b' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tickFormatter={fmtMoney}
+              tick={{ fontSize: 10, fill: '#64748b' }}
+              width={56}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={<LineTooltip />} />
+            {refLineX && (
+              <ReferenceLine
+                x={refLineX}
+                stroke="#dc2626"
+                strokeWidth={1.5}
+                strokeDasharray="4 3"
+              />
+            )}
+            <Line
+              type="monotone"
+              dataKey="payments"
+              name="Payment Collected"
+              stroke="#dc2626"
+              strokeWidth={2.5}
+              dot={(props) => <LineDot {...props} selectedMonth={selectedMonth} />}
+              activeDot={{ r: 6, fill: '#b91c1c', stroke: '#fff', strokeWidth: 2 }}
+              label={<LinePointLabel />}
+              isAnimationActive
+              animationDuration={600}
+              animationEasing="ease-out"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* ── Section 2: Deposits bar chart with sub-tabs ── */}
+      <ChartCard
+        title={`Deposits by ${CHART_TABS.find(t => t.id === chartType)?.label}`}
+        loading={active.loading}
+        height={barHeight + 60}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Active filter pills */}
+            {selectedMonth && (
+              <span className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800">
+                {fmtMonthLabel(selectedMonth)}
+                <button
+                  onClick={() => { setSelectedMonth(null); setSelectedCategory(null); }}
+                  className="ml-0.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 p-0.5 transition-colors"
+                >
+                  <X size={10} />
+                </button>
+              </span>
+            )}
+            {selectedCategory && (
+              <span className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700">
+                {selectedCategory}
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className="ml-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-zinc-700 p-0.5 transition-colors"
+                >
+                  <X size={10} />
+                </button>
+              </span>
+            )}
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              >
+                Clear all
+              </button>
+            )}
+            {/* Tab buttons */}
+            <div className="flex gap-1.5">
+              {CHART_TABS.map(t => (
+                <ToggleBtn key={t.id} active={chartType === t.id} onClick={() => handleChartTypeChange(t.id)}>
+                  {t.label}
+                </ToggleBtn>
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <div style={{ height: barHeight, overflowY: 'auto' }}>
+          <ResponsiveContainer width="100%" height={barHeight}>
+            <BarChart
+              data={barData}
+              layout="vertical"
+              margin={{ top: 4, right: 90, left: leftMargin, bottom: 4 }}
+            >
+              <XAxis
+                type="number"
+                tickFormatter={fmtMoney}
+                tick={{ fontSize: 10, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                dataKey="label"
+                type="category"
+                width={leftMargin - 10}
+                tick={{ fontSize: 10, fill: axisFill, fontWeight: 600 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<BarTooltip />} />
+              <Bar
+                dataKey="payments"
+                name="Payment Collected"
+                radius={[0, 3, 3, 0]}
+                maxBarSize={28}
+                onClick={handleBarClick}
+                style={{ cursor: 'pointer' }}
+                isAnimationActive
+                animationDuration={500}
+                animationEasing="ease-out"
+              >
+                {barData.map((entry, i) => {
+                  const isSelected  = selectedCategory === entry.label;
+                  const hasSel      = Boolean(selectedCategory);
+                  const fill        = hasSel && !isSelected
+                    ? `${active.color}44`
+                    : active.color;
+                  return <Cell key={i} fill={fill} />;
+                })}
+                <LabelList dataKey="payments" content={HBarLabel} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+    </div>
+  );
+}

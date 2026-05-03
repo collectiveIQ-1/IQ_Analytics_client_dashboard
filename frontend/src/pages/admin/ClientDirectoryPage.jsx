@@ -16,7 +16,7 @@ export default function ClientDirectoryPage() {
         <LoadingSpinner text="Loading clients..." />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {clients?.map((c) => <ClientCard key={c.id} client={c} />)}
+          {clients?.map((c, i) => <ClientCard key={c.id} client={c} index={i} />)}
         </div>
       )}
     </DashboardShell>

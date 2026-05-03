@@ -1,0 +1,315 @@
+/**
+ * USNeuroPaymentsPage.jsx — Payments tab for US Neuro Dashboard.
+ *
+ * Layout (mirrors screenshots exactly):
+ *   Top-right toggles: Both | Collective Bill Only | Collective RCM
+ *   Section 1: All Time Payment History line chart (dynamic title)
+ *   Section 2: Deposits bar chart with sub-tabs:
+ *              Surgeon Wise | Hospital Wise | Billing Type | Insurance Type
+ *
+ * Biller mode filter:
+ *   'both'      → Collective Bill Only + Collective Group
+ *   'bill_only' → Collective Bill Only only
+ *   'rcm'       → Collective Group only (default)
+ */
+
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  LineChart, Line, BarChart, Bar,
+  ResponsiveContainer, XAxis, YAxis, Tooltip, LabelList,
+} from 'recharts';
+import { usneuroApi } from '../../../api/usneuro.api';
+import { useTheme }   from '../../../contexts/ThemeContext';
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+
+const fmtMoney = (v) => {
+  const n = Number(v || 0);
+  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(n) >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n.toFixed(0)}`;
+};
+
+const fmtShortDate = (d) => {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return String(d);
+  return dt.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+};
+
+// ── Biller mode config ────────────────────────────────────────────────────────
+
+const BILLER_MODES = [
+  { id: 'both',      label: 'Both' },
+  { id: 'bill_only', label: 'Collective Bill Only' },
+  { id: 'rcm',       label: 'Collective RCM' },
+];
+
+const BILLER_LABELS = {
+  both:      'Both',
+  bill_only: 'Collective Bill Only',
+  rcm:       'Collective RCM',
+};
+
+// ── Chart sub-tabs ────────────────────────────────────────────────────────────
+
+const CHART_TABS = [
+  { id: 'surgeon',      label: 'Surgeon Wise' },
+  { id: 'hospital',     label: 'Hospital Wise' },
+  { id: 'billing_type', label: 'Billing Type' },
+  { id: 'insurance',    label: 'Insurance Type' },
+];
+
+// ── Toggle button ─────────────────────────────────────────────────────────────
+
+function ToggleBtn({ active, onClick, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-md text-sm font-bold transition-colors ${
+        active
+          ? 'bg-red-700 text-white shadow ring-2 ring-white/20'
+          : 'bg-[#991b1b] text-white hover:bg-red-800'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── Tooltips ──────────────────────────────────────────────────────────────────
+
+function LineTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs shadow-lg">
+      <p className="mb-1 font-semibold text-slate-700 dark:text-zinc-200">{fmtShortDate(label)}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-semibold">
+          {p.name}: {fmtMoney(p.value)}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function BarTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0];
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs shadow-lg">
+      <p className="font-semibold text-slate-700 dark:text-zinc-200 mb-1">{p.payload?.label || p.payload?.[Object.keys(p.payload)[0]]}</p>
+      <p style={{ color: p.color }} className="font-semibold">Payment Collected: {fmtMoney(p.value)}</p>
+    </div>
+  );
+}
+
+// ── Chart card wrapper ────────────────────────────────────────────────────────
+
+function ChartCard({ title, actions, height = 340, loading, children }) {
+  return (
+    <div
+      data-export-item
+      data-export-label={title}
+      data-export-id={title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}
+      className="overflow-hidden rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-sm"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4 border-b border-slate-50 dark:border-zinc-800/60">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-100">{title}</h3>
+        {actions && <div className="flex gap-1.5 flex-wrap">{actions}</div>}
+      </div>
+      <div className="px-4 pb-4 pt-2" style={{ height }}>
+        {loading
+          ? <div className="h-full animate-pulse rounded-xl bg-slate-50 dark:bg-zinc-900" />
+          : children}
+      </div>
+    </div>
+  );
+}
+
+// ── Line label on chart points ────────────────────────────────────────────────
+
+function LinePointLabel({ x, y, value, index }) {
+  if (value == null) return null;
+  const dy = index % 2 === 0 ? -12 : 16;
+  return (
+    <text x={x} y={y + dy} textAnchor="middle" fontSize={10} fontWeight="700" fill="#dc2626">
+      {fmtMoney(value)}
+    </text>
+  );
+}
+
+// ── Horizontal bar label ──────────────────────────────────────────────────────
+
+function HBarLabel({ x, y, width, height: h, value }) {
+  if (!value) return null;
+  return (
+    <text x={x + width + 6} y={y + h / 2 + 4} fontSize={10} fontWeight="700" fill="#374151">
+      {fmtMoney(value)}
+    </text>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function USNeuroPaymentsPage() {
+  const [billerMode, setBillerMode] = useState('rcm');
+  const [chartTab,   setChartTab]   = useState('surgeon');
+
+  const { theme } = useTheme();
+  const isDark    = theme === 'dark';
+  const axisFill  = isDark ? '#94a3b8' : '#334155';
+
+  // ── Queries ───────────────────────────────────────────────────────────────
+
+  const { data: lineData, isLoading: lineLoad } = useQuery({
+    queryKey: ['usneuro-pay-line', billerMode],
+    queryFn:  () => usneuroApi.getPaymentLineChart(billerMode).then(r => r.data.data),
+    staleTime: 300_000,
+  });
+
+  const { data: surgeonData, isLoading: surgeonLoad } = useQuery({
+    queryKey: ['usneuro-pay-surgeon', billerMode],
+    queryFn:  () => usneuroApi.getDepositsBySurgeon(billerMode).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled: chartTab === 'surgeon',
+  });
+
+  const { data: hospitalData, isLoading: hospitalLoad } = useQuery({
+    queryKey: ['usneuro-pay-hospital', billerMode],
+    queryFn:  () => usneuroApi.getDepositsByHospital(billerMode).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled: chartTab === 'hospital',
+  });
+
+  const { data: billingTypeData, isLoading: billingTypeLoad } = useQuery({
+    queryKey: ['usneuro-pay-billing-type', billerMode],
+    queryFn:  () => usneuroApi.getDepositsByBillingType(billerMode).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled: chartTab === 'billing_type',
+  });
+
+  const { data: insuranceData, isLoading: insuranceLoad } = useQuery({
+    queryKey: ['usneuro-pay-insurance', billerMode],
+    queryFn:  () => usneuroApi.getDepositsByInsurance(billerMode).then(r => r.data.data),
+    staleTime: 300_000,
+    enabled: chartTab === 'insurance',
+  });
+
+  // ── Active bar chart data ─────────────────────────────────────────────────
+
+  const barConfig = {
+    surgeon:      { data: surgeonData,     key: 'surgeon',       loading: surgeonLoad,     color: '#1e2d5a' },
+    hospital:     { data: hospitalData,    key: 'hospital',      loading: hospitalLoad,    color: '#5f8ea0' },
+    billing_type: { data: billingTypeData, key: 'billing_type',  loading: billingTypeLoad, color: '#9b3060' },
+    insurance:    { data: insuranceData,   key: 'insurance_type',loading: insuranceLoad,   color: '#8a8a2c' },
+  };
+
+  const active    = barConfig[chartTab];
+  const barData   = (active.data || []).map(r => ({ ...r, label: r[active.key] }));
+  const barHeight = Math.max(300, barData.length * 36);
+  const leftMargin = chartTab === 'hospital' ? 200 : chartTab === 'insurance' ? 180 : 160;
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="space-y-5">
+
+      {/* ── Biller mode toggles (top-right) ── */}
+      <div className="flex justify-end gap-2 flex-wrap">
+        {BILLER_MODES.map(m => (
+          <ToggleBtn key={m.id} active={billerMode === m.id} onClick={() => setBillerMode(m.id)}>
+            {m.label}
+          </ToggleBtn>
+        ))}
+      </div>
+
+      {/* ── Section 1: All Time Payment History line chart ── */}
+      <ChartCard
+        title={`All Time Months Payment History (${BILLER_LABELS[billerMode]})`}
+        loading={lineLoad}
+        height={340}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={lineData || []} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
+            <XAxis
+              dataKey="date"
+              tickFormatter={fmtShortDate}
+              tick={{ fontSize: 10, fill: '#64748b' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tickFormatter={fmtMoney}
+              tick={{ fontSize: 10, fill: '#64748b' }}
+              width={56}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={<LineTooltip />} />
+            <Line
+              type="monotone"
+              dataKey="payments"
+              name="Payment Collected"
+              stroke="#dc2626"
+              strokeWidth={2.5}
+              dot={{ r: 4, fill: '#dc2626', strokeWidth: 0 }}
+              activeDot={{ r: 6, fill: '#b91c1c', stroke: '#fff', strokeWidth: 2 }}
+              label={<LinePointLabel />}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* ── Section 2: Deposits bar chart with sub-tabs ── */}
+      <ChartCard
+        title={`Deposits by ${CHART_TABS.find(t => t.id === chartTab)?.label} (${BILLER_LABELS[billerMode]})`}
+        loading={active.loading}
+        height={barHeight + 60}
+        actions={CHART_TABS.map(t => (
+          <ToggleBtn key={t.id} active={chartTab === t.id} onClick={() => setChartTab(t.id)}>
+            {t.label}
+          </ToggleBtn>
+        ))}
+      >
+        <div style={{ height: barHeight, overflowY: 'auto' }}>
+          <ResponsiveContainer width="100%" height={barHeight}>
+            <BarChart
+              data={barData}
+              layout="vertical"
+              margin={{ top: 4, right: 90, left: leftMargin, bottom: 4 }}
+            >
+              <XAxis
+                type="number"
+                tickFormatter={fmtMoney}
+                tick={{ fontSize: 10, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                dataKey="label"
+                type="category"
+                width={leftMargin - 10}
+                tick={{ fontSize: 10, fill: axisFill, fontWeight: 600 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<BarTooltip />} />
+              <Bar
+                dataKey="payments"
+                name="Payment Collected"
+                fill={active.color}
+                radius={[0, 3, 3, 0]}
+                maxBarSize={28}
+              >
+                <LabelList dataKey="payments" content={HBarLabel} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </ChartCard>
+
+    </div>
+  );
+}

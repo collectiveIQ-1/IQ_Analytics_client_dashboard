@@ -20,16 +20,16 @@ const ALLOWED_SCHEMAS = [
   'iq_neurosurge',
   'iq_txph',
   'iq_amneuro',
+  'iq_completeneuro',
+  'iq_synapses',
+  'iq_innervate',
+  'iq_neurowatch',
 ];
 
 /**
  * Resolves a safe, validated schema name for a given clientId.
- * @param {number} clientId - The client's integer ID from public.clients
- * @returns {string} Validated schema name
- * @throws {Error} If clientId is invalid, client has no schema, or schema not in whitelist
  */
 async function resolveClientSchema(clientId) {
-  // 1. Look up from the trusted database source
   const result = await pool.query(
     `SELECT schema_name, has_schema, is_active
      FROM public.clients
@@ -51,7 +51,6 @@ async function resolveClientSchema(clientId) {
     throw Object.assign(new Error('This client does not have an active data schema yet.'), { statusCode: 404 });
   }
 
-  // 2. Cross-check against the server-side whitelist (second layer of defense)
   if (!ALLOWED_SCHEMAS.includes(client.schema_name)) {
     logger.warn(`Schema "${client.schema_name}" not in whitelist for clientId ${clientId}`);
     throw Object.assign(new Error('Schema access denied.'), { statusCode: 403 });
@@ -62,13 +61,9 @@ async function resolveClientSchema(clientId) {
 
 /**
  * Verifies a user has access to a given clientId.
- * Admins always pass. Client users must have an explicit access row.
- * @param {number} userId
- * @param {string} role - 'admin' | 'client'
- * @param {number} clientId
  */
 async function verifyUserClientAccess(userId, role, clientId) {
-  if (role === 'admin') return true;
+  if (role === 'super_admin' || role === 'admin') return true;
 
   const result = await pool.query(
     `SELECT id FROM public.user_client_access

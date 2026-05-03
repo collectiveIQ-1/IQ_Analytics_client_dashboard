@@ -5,10 +5,34 @@ node_modules/
 # Environment secrets — NEVER commit these
 .env
 **/.env
+*.env.local
+*.env.production
+
+# Credential / admin files — NEVER commit these
+admin*.txt
+*credentials*
+*password*
+*secret*
 
 # Build outputs
 dist/
 build/
+**/dist/
+**/build/
+
+# Vite cache / temp files
+*.timestamp-*.mjs
+.vite/
+**/.vite/
+
+# Local database / SQL dumps
+sql/local/
+*.sqlite
+*.sqlite3
+*.db
+
+# Claude Code internal files
+.claude/
 
 # OS files
 .DS_Store

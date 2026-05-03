@@ -3,11 +3,11 @@ import { Inbox } from 'lucide-react';
 export default function EmptyState({ title = 'No data', description = '', action }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="p-4 bg-slate-100 rounded-full mb-4">
-        <Inbox size={28} className="text-slate-400" />
+      <div className="p-4 bg-slate-100 dark:bg-zinc-900 rounded-full mb-4">
+        <Inbox size={28} className="text-slate-400 dark:text-zinc-500" />
       </div>
-      <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
-      {description && <p className="text-sm text-slate-400 mt-1 max-w-sm">{description}</p>}
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-white">{title}</h3>
+      {description && <p className="text-sm text-slate-400 dark:text-zinc-500 mt-1 max-w-sm">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

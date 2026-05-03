@@ -1,16 +1,13 @@
 export default function DashboardShell({ title, subtitle, actions, children }) {
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">{title}</h1>
-          {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+          <h1 className="page-title">{title}</h1>
+          {subtitle && <p className="page-subtitle">{subtitle}</p>}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}
       </div>
-
-      {/* Page content */}
       {children}
     </div>
   );

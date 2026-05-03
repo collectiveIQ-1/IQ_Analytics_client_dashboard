@@ -1,14 +1,20 @@
 /**
  * users.controller.js — Handles user management HTTP requests
+ *
+ * Role enforcement for create():
+ *   • super_admin → can create admin or client users
+ *   • admin       → can create client users ONLY
+ *                   (attempting to create an admin returns 403)
  */
 
 const { validationResult } = require('express-validator');
 const usersService = require('../services/users.service');
-const { ok, created, badRequest } = require('../utils/responseHelper');
+const { ok, created, badRequest, forbidden } = require('../utils/responseHelper');
 
 async function getAll(req, res, next) {
   try {
-    const users = await usersService.getAll();
+    // super_admin sees every user; admin sees all non-super_admin users
+    const users = await usersService.getAll(req.user.role);
     return ok(res, users);
   } catch (err) { next(err); }
 }
@@ -23,6 +29,15 @@ async function getById(req, res, next) {
 async function create(req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) return badRequest(res, 'Validation failed.', errors.array());
+
+  const { role: targetRole } = req.body;
+  const requesterRole = req.user.role;
+
+  // Only super_admin can create an admin user
+  if (targetRole === 'admin' && requesterRole !== 'super_admin') {
+    return forbidden(res, 'Only a Super Admin can create Admin users.');
+  }
+
   try {
     const user = await usersService.create(req.body);
     return created(res, user, 'User created successfully.');
@@ -38,7 +53,9 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const result = await usersService.remove(parseInt(req.params.id, 10));
+    // requireSuperAdmin middleware already guards this route;
+    // but we add a service-level check as defence-in-depth.
+    const result = await usersService.remove(parseInt(req.params.id, 10), req.user);
     return ok(res, result, 'User deleted.');
   } catch (err) { next(err); }
 }
@@ -73,4 +90,13 @@ async function removeClientAccess(req, res, next) {
   } catch (err) { next(err); }
 }
 
-module.exports = { getAll, getById, create, update, remove, getUserClients, assignClientAccess, removeClientAccess };
+module.exports = {
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
+  getUserClients,
+  assignClientAccess,
+  removeClientAccess,
+};
