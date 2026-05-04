@@ -8,10 +8,12 @@
  * navigate back without losing their admin context.
  *
  * Changes from the original:
- *   • Added <FallbackBanner /> above the TopBar so clients immediately see
+ *   - Added <FallbackBanner /> above the TopBar so clients immediately see
  *     when the app is running in local fallback mode.
- *   • Switched to the red/rose "login page" theme palette with soft colour
+ *   - Switched to the red/rose "login page" theme palette with soft colour
  *     blobs behind the main content and full dark-mode support.
+ *   - Added max-w-[1800px] mx-auto wrapper for full-HD layout support.
+ *   - Reduced padding from p-6 lg:p-8 to p-4 lg:p-6 for more chart space.
  */
 
 import { Outlet }     from 'react-router-dom';
@@ -25,14 +27,12 @@ export default function ClientLayout() {
 
   return (
     <div className="flex h-screen bg-[#f4f6f9] dark:bg-black overflow-hidden transition-colors duration-200">
-      {/* Pass the user's real role so admins keep their admin nav */}
       <Sidebar role={user?.role || 'client'} />
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative app-bg">
-        {/* Amber banner — visible only when backend is in local fallback mode */}
         <FallbackBanner />
         <TopBar />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 relative z-[1]">
-          <div className="animate-fade-in">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 relative z-[1]">
+          <div className="animate-fade-in max-w-[1800px] mx-auto w-full">
             <Outlet />
           </div>
         </main>

@@ -19,6 +19,7 @@ const clinicalRoutes  = require('./clinical.routes');
 const confidasRoutes      = require('./confidas.routes');
 const completeneuroRoutes = require('./completeneuro.routes');
 const synapsesRoutes      = require('./synapses.routes');
+const exportRoutes        = require('./export.routes');
 
 const router = express.Router();
 
@@ -38,5 +39,6 @@ router.use('/clinical',       clinicalRoutes);
 router.use('/confidas',       confidasRoutes);
 router.use('/completeneuro',  completeneuroRoutes);
 router.use('/synapses',       synapsesRoutes);
+router.use('/export',         exportRoutes);
 
 module.exports = router;

@@ -421,7 +421,7 @@ export default function USNeuroProductionPage() {
                   Last 12 Months Adjustment History
                 </p>
                 <div style={{ height: 240 }}>
-                  {adjLoad ? <ChartSkeleton height={240} /> : (
+                  {adjLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                         <defs>
@@ -451,7 +451,7 @@ export default function USNeuroProductionPage() {
                   Last 12 Months Payments by Payer Wise
                 </p>
                 <div style={{ height: 240 }}>
-                  {payerLoad ? <ChartSkeleton height={240} /> : (
+                  {payerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={payerData || []}
@@ -483,7 +483,7 @@ export default function USNeuroProductionPage() {
                   Last 12 Months Payments History
                 </p>
                 <div style={{ height: 240 }}>
-                  {pmtLoad ? <ChartSkeleton height={240} /> : (
+                  {pmtLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                         <XAxis dataKey="date" tickFormatter={fmtShortDate}
@@ -508,7 +508,7 @@ export default function USNeuroProductionPage() {
                   Last 12 Months Payments by Biller Entity
                 </p>
                 <div style={{ height: 240 }}>
-                  {billerLoad ? <ChartSkeleton height={240} /> : (
+                  {billerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={billerData || []}

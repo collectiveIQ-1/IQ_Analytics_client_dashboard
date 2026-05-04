@@ -324,7 +324,7 @@ export default function QFDPaymentsPage() {
               )}
             </div>
           }
-          height={260}
+          height={320}
           loading={providerLoading}
           highlight={!!selectedProvider || !!selectedFacility}
         >
@@ -374,7 +374,7 @@ export default function QFDPaymentsPage() {
               )}
             </div>
           }
-          height={260}
+          height={320}
           loading={facilityLoading}
           highlight={!!selectedProvider || !!selectedFacility}
         >

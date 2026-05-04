@@ -172,7 +172,7 @@ export default function QFDDashboard({ clientId }) {
   return (
     <div className="-mt-2" ref={contentRef}>
       {/* Tab bar + Export */}
-      <div className="flex items-end justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         <div className="overflow-x-auto flex-1">
           <nav className="flex gap-0.5 border-b border-slate-100 dark:border-zinc-800">
             {TABS.map(({ id, label, icon: Icon }) => {

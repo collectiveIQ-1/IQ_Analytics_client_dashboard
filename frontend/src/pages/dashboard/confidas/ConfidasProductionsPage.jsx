@@ -439,7 +439,7 @@ export default function ConfidasProductionsPage() {
                   Last 12 Months Payments History
                 </p>
                 <div style={{ height: 260 }}>
-                  {pmtLoad ? <ChartSkeleton height={260} /> : (
+                  {pmtLoad ? <ChartSkeleton height={320} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                         <XAxis dataKey="date" tickFormatter={fmtShortDate}
@@ -465,7 +465,7 @@ export default function ConfidasProductionsPage() {
                   Last 12 Months Payments by Payment Method
                 </p>
                 <div style={{ height: 260 }}>
-                  {methodLoad ? <ChartSkeleton height={260} /> : (
+                  {methodLoad ? <ChartSkeleton height={320} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={methodData || []}

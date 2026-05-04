@@ -105,8 +105,8 @@
   .table-cell { @apply px-5 py-4 text-sm text-slate-700 dark:text-zinc-200; }
 
   /* ── Page header ─────────────────────────── */
-  .page-header { @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6; }
-  .page-title   { @apply text-2xl font-bold text-slate-800 tracking-tight dark:text-white; }
+  .page-header  { @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5; }
+  .page-title   { @apply text-3xl font-bold text-slate-800 tracking-tight dark:text-white; }
   .page-subtitle{ @apply text-sm text-slate-500 mt-0.5 dark:text-zinc-400; }
 
   /* ── Sidebar nav item ────────────────────── */

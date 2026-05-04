@@ -490,7 +490,7 @@ export default function SynapsesProductionPage() {
                   All Time Adjustment History
                 </p>
                 <div style={{ height: 240 }}>
-                  {adjLoad ? <ChartSkeleton height={240} /> : (
+                  {adjLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                         <defs>
@@ -537,7 +537,7 @@ export default function SynapsesProductionPage() {
                   Deposit by Payer
                 </p>
                 <div style={{ height: 240 }}>
-                  {payerLoad ? <ChartSkeleton height={240} /> : (
+                  {payerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={payerData || []}
@@ -579,7 +579,7 @@ export default function SynapsesProductionPage() {
                   Last 12 Months Payments History
                 </p>
                 <div style={{ height: 240 }}>
-                  {pmtLoad ? <ChartSkeleton height={240} /> : (
+                  {pmtLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                         <XAxis
@@ -620,7 +620,7 @@ export default function SynapsesProductionPage() {
                   Deposit by Billing Entity
                 </p>
                 <div style={{ height: 240 }}>
-                  {billerLoad ? <ChartSkeleton height={240} /> : !billerData?.length ? (
+                  {billerLoad ? <ChartSkeleton height={310} /> : !billerData?.length ? (
                     <div className="flex items-center justify-center h-full text-slate-400 text-xs">No data available</div>
                   ) : (
                     <ResponsiveContainer width="100%" height="100%">

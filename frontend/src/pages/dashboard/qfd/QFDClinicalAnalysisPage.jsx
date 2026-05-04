@@ -499,7 +499,7 @@ function WeeklyOverviewTab({ onRetry }) {
         <LineChart
           series={volumeSeries}
           xLabels={xLabels}
-          height={220}
+          height={300}
           loading={volumeQ.isFetching}
           error={volumeQ.isError}
           onRetry={onRetry}
@@ -511,7 +511,7 @@ function WeeklyOverviewTab({ onRetry }) {
         <LineChart
           series={accountsSeries}
           xLabels={accountXLabels}
-          height={200}
+          height={300}
           loading={accountsQ.isFetching}
           error={accountsQ.isError}
           onRetry={onRetry}
@@ -836,7 +836,7 @@ function ClinicBreakdownTab({ onRetry }) {
           <StackedAreaChart
             series={clinicSeries}
             xLabels={clinicWeeklyX}
-            height={220}
+            height={300}
             loading={weeklyQ.isFetching}
             error={weeklyQ.isError}
             onRetry={onRetry}

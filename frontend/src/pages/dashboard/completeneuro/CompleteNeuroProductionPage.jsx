@@ -446,7 +446,7 @@ export default function CompleteNeuroProductionPage() {
                 Adjustment History (Write-offs by Date Collected)
               </p>
               <div style={{ height: 260 }}>
-                {adjLoad ? <ChartSkeleton height={260} /> : (
+                {adjLoad ? <ChartSkeleton height={320} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                       <XAxis dataKey="date" tickFormatter={fmtShortDate}
@@ -470,7 +470,7 @@ export default function CompleteNeuroProductionPage() {
                 Payments History (Payment Collected by Date Collected)
               </p>
               <div style={{ height: 260 }}>
-                {pmtLoad ? <ChartSkeleton height={260} /> : (
+                {pmtLoad ? <ChartSkeleton height={320} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
                       <XAxis dataKey="date" tickFormatter={fmtShortDate}

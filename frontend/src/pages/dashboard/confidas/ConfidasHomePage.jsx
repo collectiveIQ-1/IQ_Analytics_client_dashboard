@@ -18,7 +18,7 @@ import {
   PieChart,   Pie,  Cell,
   ResponsiveContainer,
   XAxis, YAxis, Tooltip, Legend,
-  ReferenceLine, LabelList,
+  ReferenceLine, Label, LabelList,
 } from 'recharts';
 import { confidasApi } from '../../../api/confidas.api';
 import QFDKpiCard      from '../../../components/qfd/QFDKpiCard';
@@ -142,11 +142,15 @@ export default function ConfidasHomePage({ onNavigate }) {
   const activeAdj     = row3Expanded === 'adjustments'  ? (adjFull      ?? adjData)      : adjData;
 
   const donutTotal = (donutData || []).reduce((s, d) => s + (d.total_balance ?? 0), 0);
+  const over60Entry = (donutData || [])[0] ?? null;
+  const over60Pct  = donutTotal > 0 && over60Entry
+    ? ((over60Entry.total_balance / donutTotal) * 100).toFixed(1)
+    : null;
 
   // ── Heights ───────────────────────────────────────────────────────────────
-  const R1_H = row1Expanded ? 340 : 240;
-  const R2_H = row2Expanded ? 360 : 210;
-  const R3_H = row3Expanded ? 340 : 195;
+  const R1_H = row1Expanded ? 420 : 300;
+  const R2_H = row2Expanded ? 400 : 290;
+  const R3_H = row3Expanded ? 400 : 270;
 
   // ── Grid classes ──────────────────────────────────────────────────────────
   const r1MetricsClass = row1Expanded === 'payment' ? 'hidden' : 'col-span-12 lg:col-span-7';
@@ -538,6 +542,23 @@ export default function ConfidasHomePage({ onNavigate }) {
                         strokeWidth={2}
                       />
                     ))}
+                  <Label
+                    position="center"
+                    content={({ viewBox }) => {
+                      if (!viewBox || !over60Pct) return null;
+                      const { cx, cy } = viewBox;
+                      return (
+                        <text textAnchor="middle" dominantBaseline="central">
+                          <tspan x={cx} y={cy - 7} fontSize={15} fontWeight="800" fill="#dc2626">
+                            {over60Pct}%
+                          </tspan>
+                          <tspan x={cx} dy={14} fontSize={8} fontWeight="500" fill="#94a3b8">
+                            &gt;60 Days
+                          </tspan>
+                        </text>
+                      );
+                    }}
+                  />
                   </Pie>
                   <Tooltip formatter={v => fmtMoney(v)} />
                   <Legend

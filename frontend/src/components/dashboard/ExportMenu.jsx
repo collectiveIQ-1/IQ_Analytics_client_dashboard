@@ -18,12 +18,13 @@
  *   />
  *
  * Props:
- *   targetRef   -- React ref pointing to the DOM node to capture (whole page)
- *   fileName    -- base file name (no extension)
- *   title       -- shown in PDF header
- *   excelData   -- optional: { sheets: [{ name, rows: [[...]] }] } for whole-page Excel/CSV
- *   items       -- optional array of { id, label, ref, data? } for individual chart/table export
- *                    data can be row[][] OR { sheets: [{ name, rows }] }
+ *   targetRef        -- React ref pointing to the DOM node to capture (whole page)
+ *   fileName         -- base file name (no extension)
+ *   title            -- shown in PDF header
+ *   excelData        -- optional: { sheets: [{ name, rows: [[...]] }] } for whole-page Excel/CSV
+ *   items            -- optional array of { id, label, ref, data? } for individual chart/table export
+ *   datasourceItems  -- array of { id, label, table, endpoint } for Data Source backend export
+ *                       The endpoint must start with "/<client>/..." so the client can be inferred.
  */
 
 import { useRef, useState, useEffect } from 'react';
@@ -272,154 +273,120 @@ async function exportCSV(targetRef, fileName, excelData) {
   URL.revokeObjectURL(url);
 }
 
-// -- Data Source export --------------------------------------------------------
+// -- Data Source export (backend-driven) ---------------------------------------
 
-// Builds a valid Excel sheet name: ShortLabel__table (≤ 31 chars, no illegal chars)
-function dsSheetName(label, table) {
-  const illegal = /[/\\*?[\]:]/g;
-  const tbl     = table.replace(illegal, '').slice(0, 18);
-  const suffix  = `__${tbl}`;
-  const lbl     = label.replace(illegal, '').replace(/\s+/g, '').slice(0, 31 - suffix.length);
-  return `${lbl}${suffix}`.slice(0, 31);
+/**
+ * Infer the client key from a datasource item endpoint.
+ * e.g. '/qfd/datasource?chart=foo'  → 'qfd'
+ *      '/usneuro/datasource?...'     → 'usneuro'
+ *      '/ionm/datasource?...'        → 'ionm'
+ */
+function inferClient(endpoint) {
+  if (!endpoint) return null;
+  // Strip leading slash and take the first path segment
+  return endpoint.replace(/^\//, '').split('/')[0] || null;
 }
+
+/**
+ * exportDataSource — calls the backend streaming endpoint.
+ *
+ * The backend:
+ *   1. Validates client + chart IDs against a server-side map (schema/table never sent from frontend)
+ *   2. Runs SELECT * on each source table (up to 2 M rows, 5-min timeout)
+ *   3. Builds an xlsx workbook using aoa_to_sheet (no "Too many properties" error)
+ *   4. Streams the buffer back as Content-Type: application/vnd.openxmlformats-...
+ *
+ * The frontend simply downloads the blob — zero Excel processing in the browser.
+ */
+// EXPORT_TIMEOUT_MS: backend now fetches all tables in parallel (Promise.all).
+// 100K rows per table × parallel fetch = typically 20-60 seconds. 3 min is generous.
+const EXPORT_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
 
 async function exportDataSource(dsItems, singleItem, fName) {
   if (!dsItems?.length && !singleItem) {
     throw new Error('No data source items are configured for this page.');
   }
 
-  const targets   = singleItem ? [singleItem] : dsItems;
-  const xlsxMod   = await import('xlsx');
-  const XLSX      = xlsxMod.default ?? xlsxMod;
-  // Token can be stored under either key — try both
-  const token     = localStorage.getItem('iq_token') || localStorage.getItem('token') || '';
-  const baseURL   = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL)
+  const targets = singleItem ? [singleItem] : dsItems;
+
+  // Derive client from the first item's endpoint  (/qfd/datasource?... → 'qfd')
+  const client = inferClient(targets[0]?.endpoint);
+  if (!client) {
+    throw new Error('Could not determine client from datasource endpoint. Check datasourceItems have a valid endpoint.');
+  }
+
+  // Build chart ID list for the backend
+  const chartIds = targets.map((t) => t.id).join(',');
+
+  const baseURL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL)
     || 'http://localhost:4000/api';
-  const timestamp = new Date().toLocaleString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-  });
+  const token   = localStorage.getItem('iq_token') || localStorage.getItem('token') || '';
 
-  const wb = XLSX.utils.book_new();
+  const url = baseURL + '/export/data-source/download'
+    + '?client=' + encodeURIComponent(client)
+    + '&charts=' + encodeURIComponent(chartIds);
 
-  // Sheet 1: Export_Info — one row per chart with fetch outcome
-  const infoRows = [];
+  // AbortController gives us a hard timeout so the spinner never hangs forever
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), EXPORT_TIMEOUT_MS);
 
-  // One data sheet per chart
-  const usedSheetNames = new Set(['Export_Info']);
-
-  for (const it of targets) {
-    let rows           = [];
-    let fetchNote      = 'OK';
-    let resolvedSchema = it.schema ?? '';
-
-    try {
-      console.log('[ExportDataSource] fetching:', it.endpoint, '— id:', it.id);
-      const fetchUrl = `${baseURL}${it.endpoint}`;
-      const res = await fetch(fetchUrl, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) {
-        // Try to extract a server-side message for easier debugging
-        let serverMsg = '';
-        try {
-          const errJson = await res.json();
-          serverMsg = errJson?.message || '';
-        } catch { /* ignore JSON parse failure */ }
-        const msg = `HTTP ${res.status}${serverMsg ? ': ' + serverMsg : ''}`;
-        console.warn('[ExportDataSource] non-OK response for', it.id, '—', msg);
-        fetchNote = msg;
-      } else {
-        const json    = await res.json();
-        // Response can be:
-        //   { success, data: { chartId, label, schema, table, rowCount, rows: [...] } }  ← single chart
-        //   { success, data: { charts: [{...}] } }                                       ← multi-chart batch
-        //   { success, data: [...] }                                                      ← legacy array
-        const payload = json?.data;
-        // Capture schema from server response if present
-        if (payload?.schema) resolvedSchema = payload.schema;
-        if (Array.isArray(payload)) {
-          rows = payload;
-        } else if (Array.isArray(payload?.rows)) {
-          rows = payload.rows;
-        } else if (Array.isArray(payload?.charts)) {
-          // multi-chart envelope — find the matching chart
-          const match = payload.charts.find((c) => c.chartId === it.id);
-          rows = Array.isArray(match?.rows) ? match.rows : [];
-          if (match?.schema) resolvedSchema = match.schema;
-        } else {
-          rows = [];
-        }
-        console.log('[ExportDataSource]', it.id, '→', rows.length, 'rows');
-        if (rows.length === 0) fetchNote = 'source table returned 0 rows';
-      }
-    } catch (fetchErr) {
-      fetchNote = fetchErr.message || 'network error';
-      console.warn('[ExportDataSource] fetch failed for', it.id, '—', fetchNote);
-    }
-
-    // Collect info row
-    infoRows.push({
-      'Export Type':      'Full Source Table',
-      'Chart Name':       it.label,
-      'Schema':           resolvedSchema,
-      'Table':            it.table,
-      'Row Count':        rows.length,
-      'Filters Applied':  'None',
-      'Exported At':      timestamp,
-      'Status':           fetchNote,
+  let response;
+  try {
+    response = await fetch(url, {
+      method:  'GET',
+      signal:  controller.signal,
+      headers: { Authorization: 'Bearer ' + token },
     });
-
-    // Build data sheet — deduplicate sheet names when multiple charts share a table
-    let sheetName = dsSheetName(it.label, it.table);
-    if (usedSheetNames.has(sheetName)) {
-      let i = 2;
-      while (usedSheetNames.has(`${sheetName.slice(0, 28)}_${i}`)) i++;
-      sheetName = `${sheetName.slice(0, 28)}_${i}`;
+  } catch (fetchErr) {
+    clearTimeout(timeoutId);
+    if (fetchErr.name === 'AbortError') {
+      throw new Error('Export timed out after 8 minutes. Try exporting a single chart instead.');
     }
-    usedSheetNames.add(sheetName);
+    throw new Error('Network error: ' + fetchErr.message);
+  }
+  clearTimeout(timeoutId);
 
-    let ws;
-    if (rows.length > 0) {
-      // Sanitize: flatten any object/array column values to JSON strings so
-      // SheetJS doesn't try to enumerate nested properties (which throws
-      // "Too many properties to enumerate" on large tables with JSON columns).
-      const sanitized = rows.map((row) => {
-        const clean = {};
-        for (const key of Object.keys(row)) {
-          const v = row[key];
-          clean[key] = (v !== null && v !== undefined && typeof v === 'object')
-            ? JSON.stringify(v)
-            : v;
-        }
-        return clean;
-      });
-      ws = XLSX.utils.json_to_sheet(sanitized);
-    } else {
-      const msg = fetchNote === 'OK' || fetchNote === 'source table returned 0 rows'
-        ? 'No Data Available — source table returned 0 rows.'
-        : `No Data Available — ${fetchNote}`;
-      ws = XLSX.utils.aoa_to_sheet([[msg]]);
-    }
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  if (!response.ok) {
+    let msg = 'HTTP ' + response.status;
+    try {
+      const errJson = await response.json();
+      msg = errJson?.message || msg;
+    } catch { /* response wasn't JSON */ }
+    throw new Error('Export failed: ' + msg);
   }
 
-  // Prepend Export_Info sheet (insert first)
-  const infoWs = XLSX.utils.json_to_sheet(infoRows);
-  XLSX.utils.book_append_sheet(wb, infoWs, 'Export_Info');
-  // Move Export_Info to first position
-  const names = wb.SheetNames;
-  const infoIdx = names.indexOf('Export_Info');
-  if (infoIdx > 0) {
-    names.splice(infoIdx, 1);
-    names.unshift('Export_Info');
+  // Verify backend actually returned an Excel file
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('spreadsheetml') && !contentType.includes('octet-stream')) {
+    // Likely an error JSON — read it and surface the message
+    let errMsg = 'Unexpected response from server (content-type: ' + contentType + ')';
+    try {
+      const text = await response.text();
+      const parsed = JSON.parse(text);
+      if (parsed?.message) errMsg = parsed.message;
+    } catch { /* ignore */ }
+    throw new Error(errMsg);
   }
 
-  const outFile = singleItem
-    ? `${fName}-${singleItem.id}-datasource.xlsx`
-    : `${fName}-datasource.xlsx`;
-  XLSX.writeFile(wb, outFile);
+  const blob     = await response.blob();
+  const blobUrl  = window.URL.createObjectURL(blob);
+  const dateTag  = new Date().toISOString().slice(0, 10);
+  const fileName = singleItem
+    ? fName + '-' + singleItem.id + '-datasource-' + dateTag + '.xlsx'
+    : fName + '-datasource-' + dateTag + '.xlsx';
+
+  // Trigger download — revokeObjectURL is deferred so the browser can start the download
+  const link     = document.createElement('a');
+  link.href      = blobUrl;
+  link.download  = fileName;
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  // Give the browser 2 s to initiate the download before releasing the object URL
+  setTimeout(() => {
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  }, 2000);
 }
 
 // -- Helpers -------------------------------------------------------------------
@@ -612,7 +579,6 @@ export default function ExportMenu({
   };
 
   // Sub-menu rendered via portal to escape overflow-hidden ancestors.
-  // Shows for regular items OR when datasource is active with datasourceItems.
   const showPortal = activeSubMenu && (
     (activeSubMenu === 'datasource' && hasDatasourceItems) ||
     (activeSubMenu !== 'datasource' && hasItems)
@@ -662,7 +628,8 @@ export default function ExportMenu({
 
   return (
     <>
-      <div ref={menuRef} className="relative inline-block" data-export-ignore>
+      {/* Wrapper: inline-flex so it sits naturally in flex header rows */}
+      <div ref={menuRef} className="relative inline-flex items-center" data-export-ignore>
         <button
           onClick={() => setOpen((o) => !o)}
           disabled={!!busy}
@@ -676,7 +643,7 @@ export default function ExportMenu({
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full mt-1.5 z-50 w-52 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-slate-100 dark:border-zinc-800 overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 z-50 w-52 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-slate-100 dark:border-zinc-800 overflow-hidden">
             {MENU_ITEMS.map(({ key, label, icon: Icon }) => {
               const canExpand = key === 'datasource' ? hasDatasourceItems : hasItems;
               return (
