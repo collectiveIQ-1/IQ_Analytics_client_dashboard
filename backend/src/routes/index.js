@@ -19,7 +19,9 @@ const clinicalRoutes  = require('./clinical.routes');
 const confidasRoutes      = require('./confidas.routes');
 const completeneuroRoutes = require('./completeneuro.routes');
 const synapsesRoutes      = require('./synapses.routes');
+const neurowatchRoutes    = require('./neurowatch.routes');
 const exportRoutes        = require('./export.routes');
+const innervateRoutes     = require('./innervate.routes');
 
 const router = express.Router();
 
@@ -39,6 +41,8 @@ router.use('/clinical',       clinicalRoutes);
 router.use('/confidas',       confidasRoutes);
 router.use('/completeneuro',  completeneuroRoutes);
 router.use('/synapses',       synapsesRoutes);
+router.use('/neurowatch',     neurowatchRoutes);
 router.use('/export',         exportRoutes);
+router.use('/innervate',      innervateRoutes);
 
 module.exports = router;

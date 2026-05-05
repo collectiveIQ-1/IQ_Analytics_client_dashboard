@@ -231,6 +231,63 @@ const CHART_DS_MAP = {
       'idr-payments':               { label: 'IDR Payment Summary',                     table: 'smartsheet'            },
     },
   },
+
+  // ── Neuro Watch ─────────────────────────────────────────────────────────────
+  neurowatch: {
+    schema: 'iq_neurowatch',
+    charts: {
+      'payment-history':     { label: 'Payment History',           table: 'neurowatch_full_deposit' },
+      'charges-vs-payments': { label: 'Charges vs Payments',       table: 'neurowatch_full_billing' },
+      'accounts-receivable': { label: 'Accounts Receivable',       table: 'neurowatch_full_billing' },
+      'total-charges':       { label: 'Total Charges',             table: 'neurowatch_full_billing' },
+      'total-adjustments':   { label: 'Total Adjustments',         table: 'neurowatch_full_billing' },
+      'ar-over-60':          { label: 'AR % > 60+ Days',           table: 'neurowatch_full_billing' },
+      'payment-line':        { label: 'Payment Trend',             table: 'neurowatch_full_deposit' },
+      'deposits-surgeon':    { label: 'Deposits by Surgeon',       table: 'neurowatch_full_deposit' },
+      'deposits-hospital':   { label: 'Deposits by Hospital',      table: 'neurowatch_full_deposit' },
+      'deposits-billing':    { label: 'Deposits by Billing Type',  table: 'neurowatch_full_deposit' },
+      'deposits-insurance':  { label: 'Deposits by Insurance',     table: 'neurowatch_full_deposit' },
+    },
+  },
+  innervate: {
+    schema: 'iq_innervate',
+    charts: {
+      'payment-history':     { label: 'Payment History (DOD)',      table: 'innervate_full_deposit' },
+      'charges-vs-payments': { label: 'Charges vs Payments (DOE)',  table: 'innervate_full_billing' },
+      'accounts-receivable': { label: 'Accounts Receivable',        table: 'innervate_full_billing' },
+      'total-charges':       { label: 'Total Charges (DOE)',        table: 'innervate_full_billing' },
+      'total-adjustments':   { label: 'Total Adjustments',         table: 'innervate_full_billing' },
+      'ar-aging':            { label: 'AR % > 60+ Days',           table: 'innervate_full_billing' },
+      'payment-line':        { label: 'All Time Payment History',  table: 'innervate_full_deposit' },
+      'deposits-surgeon':    { label: 'Deposits by Surgeon',       table: 'innervate_full_deposit' },
+      'deposits-hospital':   { label: 'Deposits by Hospital',      table: 'innervate_full_deposit' },
+      'deposits-billing':    { label: 'Deposits by Billing Type',  table: 'innervate_full_deposit' },
+      'deposits-insurance':  { label: 'Deposits by Insurance Type',table: 'innervate_full_deposit' },
+      'production-dos':      { label: 'Production — DOS',              table: 'innervate_full_billing' },
+      'production-doe':      { label: 'Production — DOE',              table: 'innervate_full_billing' },
+      'reimb-dos':           { label: 'Reimbursement Analysis (DOS)',  table: 'innervate_full_billing' },
+      'reimb-doe':           { label: 'Reimbursement Analysis (DOE)',  table: 'innervate_full_billing' },
+      'dod-adjustments':     { label: 'DOD Adjustment History',        table: 'innervate_full_billing' },
+      'dod-payments':        { label: 'DOD Payment History',           table: 'innervate_full_deposit' },
+      'dod-payer':           { label: 'DOD Payments by Payer',         table: 'innervate_full_deposit' },
+      'dod-biller-entity':   { label: 'DOD Payments by Biller Entity', table: 'innervate_full_deposit' },
+      'ar-dos':              { label: 'AR — Date of Service',          table: 'innervate_full_billing' },
+      'ar-doe':              { label: 'AR — Date of Entry',            table: 'innervate_full_billing' },
+      'ar-insurance':        { label: 'AR by Insurance',               table: 'innervate_full_billing' },
+      'ar-surgeon':          { label: 'AR by Surgeon',                 table: 'innervate_full_billing' },
+      // Insights page
+      'insights-insurance':  { label: 'Insurance Wise Analysis',        table: 'innervate_full_billing' },
+      'insights-surgeon':    { label: 'Surgeon Wise Analysis',          table: 'innervate_full_billing' },
+      'insights-reader':     { label: 'Reader Wise Analysis',           table: 'innervate_full_billing' },
+      'insights-technician': { label: 'Technician Wise Analysis',       table: 'innervate_full_billing' },
+      // Procedure page
+      'proc-deposits':       { label: 'Deposits by Procedure Type',     table: 'innervate_full_deposit' },
+      'proc-charges':        { label: 'Charges by Procedure Type',      table: 'innervate_full_billing' },
+      'proc-dos-more':       { label: 'Procedure More (DOS)',           table: 'innervate_full_billing' },
+      'proc-doe-more':       { label: 'Procedure More (DOE)',           table: 'innervate_full_billing' },
+      'proc-dod-more':       { label: 'Deposits by Procedure Type (DOD)', table: 'innervate_full_deposit' },
+    },
+  },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
