@@ -56,11 +56,11 @@ export default function QFDKpiCard({
     <div
       onClick={onClick}
       className={`
-        ${c.bg} rounded-2xl p-5 transition-all duration-200
+        ${c.bg} rounded-xl md:rounded-2xl p-3 md:p-5 transition-all duration-200
         ${onClick ? `cursor-pointer ${c.hover} hover:-translate-y-0.5 hover:shadow-sm` : ''}
       `}
     >
-      <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${c.label}`}>
+      <p className={`text-[10px] md:text-xs font-semibold uppercase tracking-wide mb-0.5 md:mb-1 ${c.label}`}>
         {label}
       </p>
 
@@ -71,7 +71,7 @@ export default function QFDKpiCard({
       {loading ? (
         <div className="h-8 w-28 bg-white/50 dark:bg-black/20 rounded-lg animate-pulse" />
       ) : (
-        <p className={`text-2xl font-bold leading-tight ${c.value}`}>
+        <p className={`text-xl md:text-2xl font-bold leading-tight ${c.value}`}>
           {value}
         </p>
       )}

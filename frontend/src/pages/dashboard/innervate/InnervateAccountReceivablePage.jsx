@@ -372,7 +372,7 @@ export default function InnervateAccountReceivablePage() {
               </button>
             </div>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-2 md:px-4 pb-4">
             {expandTab === 'insurance' ? (
               <PivotTable data={insData} labelKey="insurance_type" loading={insLoad} />
             ) : (
@@ -433,7 +433,7 @@ export default function InnervateAccountReceivablePage() {
                 Expand
               </button>
             </div>
-            <div style={{ height: 280 }}>
+            <div style={{ minHeight: 280, height: 280 }}>
               {loading ? <Skeleton height={280} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -488,7 +488,7 @@ export default function InnervateAccountReceivablePage() {
             <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
               Accounts Receivable Percentage ({modeLabel})
             </p>
-            <div style={{ height: 280 }}>
+            <div style={{ minHeight: 280, height: 280 }}>
               {loading ? <Skeleton height={280} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -564,7 +564,7 @@ export default function InnervateAccountReceivablePage() {
               Expand
             </button>
           </div>
-          <div className="px-4 pb-4" style={{ height: 320 }}>
+          <div className="px-2 md:px-4 pb-4" style={{ minHeight: 320, height: 320 }}>
             {loading ? <Skeleton height={320} /> : treemapData.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-10">No data.</p>
             ) : (
@@ -607,7 +607,7 @@ export default function InnervateAccountReceivablePage() {
               AR by Category ({modeLabel})
             </p>
           </div>
-          <div className="px-4 pb-2" style={{ height: 240 }}>
+          <div className="px-2 md:px-4 pb-2" style={{ minHeight: 240, height: 240 }}>
             {loading ? <Skeleton height={240} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

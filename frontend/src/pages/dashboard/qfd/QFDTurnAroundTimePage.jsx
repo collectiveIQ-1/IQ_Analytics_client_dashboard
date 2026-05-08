@@ -352,7 +352,7 @@ export default function QFDTurnAroundTimePage() {
 
           {/* ── Last 12 Months chart ── */}
           {view === 'last12' && (
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <TATBarChart
                 data={last12Data}
                 selectionKey={selection}
@@ -366,7 +366,7 @@ export default function QFDTurnAroundTimePage() {
 
           {/* ── Last Month chart ── */}
           {view === 'lastmonth' && (
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <TATBarChart
                 data={lastMonData}
                 selectionKey={selection}

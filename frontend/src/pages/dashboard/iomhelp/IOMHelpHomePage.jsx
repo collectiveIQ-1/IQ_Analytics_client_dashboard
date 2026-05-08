@@ -151,7 +151,7 @@ export default function IOMHelpHomePage({ onNavigate }) {
     <div className="flex flex-col gap-3">
 
       {/* ══ ROW 1 — Revenue Cycle Metrics + Payment History ══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Revenue Cycle Metrics */}
         <div className={`${r1MetricsClass} transition-all duration-300`}>
@@ -161,7 +161,7 @@ export default function IOMHelpHomePage({ onNavigate }) {
                 Revenue Cycle Metrics
               </h3>
             </div>
-            <div className="p-3 grid grid-cols-2 gap-3 h-[calc(100%-44px)]">
+            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3 h-[calc(100%-44px)]">
               <QFDKpiCard
                 label="Total Payments"
                 value={fmtMillions(kpis?.total_payments)}
@@ -226,7 +226,7 @@ export default function IOMHelpHomePage({ onNavigate }) {
       </div>
 
       {/* ══ ROW 2 — Charges vs Payments | CCR History | AR Pie ══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Last 12 Months Charges vs Payments (DOE) — EXPANDABLE */}
         <div className={`${r2Col('charges')} transition-all duration-300`}>
@@ -305,7 +305,7 @@ export default function IOMHelpHomePage({ onNavigate }) {
       </div>
 
       {/* ══ ROW 3 — Total Charges | Total Adjustments | AR% >60 Days ══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Total Charges (DOE) — step line, purple — EXPANDABLE */}
         <div className={`${r3Col('totalCharges')} transition-all duration-300`}>

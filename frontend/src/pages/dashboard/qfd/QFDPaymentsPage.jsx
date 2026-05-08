@@ -108,7 +108,7 @@ function ChartCard({ title, actions, height = 200, loading, children, highlight 
         <h3 className="text-sm font-semibold text-slate-800 dark:text-zinc-100">{title}</h3>
         {actions}
       </div>
-      <div className="px-4 pb-4" style={{ height }}>
+      <div className="px-2 md:px-4 pb-4" style={{ height }}>
         {loading
           ? <div className="h-full animate-pulse rounded-xl bg-slate-50 dark:bg-zinc-900" />
           : children}

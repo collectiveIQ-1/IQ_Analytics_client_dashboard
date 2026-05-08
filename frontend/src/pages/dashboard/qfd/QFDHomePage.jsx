@@ -215,7 +215,7 @@ export default function QFDHomePage({ onNavigate }) {
       )}
 
       {/* ═══ ROW 1 — Revenue Cycle Metrics + Payment History ═══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Revenue Cycle Metrics panel */}
         <div className={`${r1MetricsClass} transition-all duration-300`}>
@@ -225,7 +225,7 @@ export default function QFDHomePage({ onNavigate }) {
                 Revenue Cycle Metrics
               </h3>
             </div>
-            <div className="p-3 grid grid-cols-2 gap-3 h-[calc(100%-44px)]">
+            <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-3 h-[calc(100%-44px)]">
               <QFDKpiCard label="Total Payments"   value={fmtMillions(kpis?.total_payments)} subLabel="Last 12 Months" color="pink"   loading={kpiLoad} onClick={() => onNavigate?.('payments')} />
               <QFDKpiCard label="Total Charges"    value={fmtMillions(kpis?.total_charges)}  subLabel="Last 12 Months" color="amber"  loading={kpiLoad} onClick={() => onNavigate?.('ar')} />
               <QFDKpiCard label="AVG Days DOS→DOE" value={fmtDays(kpis?.avg_days)}           subLabel="Last 12 Months" color="green"  loading={kpiLoad} />
@@ -284,7 +284,7 @@ export default function QFDHomePage({ onNavigate }) {
       </div>{/* end Row 1 */}
 
       {/* ═══ ROW 2 — Charges vs Payments | CCR History | AR Receivable ═══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Charges vs Payments — EXPANDABLE */}
         <div className={`${r2Col('charges')} transition-all duration-300`}>
@@ -423,7 +423,7 @@ export default function QFDHomePage({ onNavigate }) {
       </div>{/* end Row 2 */}
 
       {/* ═══ ROW 3 — Total Charges | Total Adjustments | AR% >60 Days ═══ */}
-      <div className="grid grid-cols-12 gap-3">
+      <div className="grid grid-cols-12 gap-2 md:gap-3">
 
         {/* Total Charges (DOE) — EXPANDABLE */}
         <div className={`${r3Col('totalCharges')} transition-all duration-300`}>

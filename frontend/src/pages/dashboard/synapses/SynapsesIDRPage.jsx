@@ -154,7 +154,7 @@ export default function SynapsesIDRPage() {
         {/* ── IDR Payment Received (Area) ─────────────────────────────── */}
         <ChartCard title="IDR Payment Received">
           {trendLoad ? <Skeleton /> : (
-            <div style={{ height: 220 }}>
+            <div style={{ minHeight: 220, height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                   <defs>
@@ -191,7 +191,7 @@ export default function SynapsesIDRPage() {
         {/* ── IDR Claim Count (Bar by status) ────────────────────────── */}
         <ChartCard title="IDR Claim Count">
           {statusLoad ? <Skeleton /> : (
-            <div style={{ height: 220 }}>
+            <div style={{ minHeight: 220, height: 220 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={statusData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
                   <XAxis
@@ -224,7 +224,7 @@ export default function SynapsesIDRPage() {
         {/* ── IDR Pro and Tech Wise (Pie) ──────────────────────────────── */}
         <ChartCard title="IDR Pro and Tech Wise">
           {ptLoad ? <Skeleton /> : (
-            <div style={{ height: 220 }} className="flex items-center">
+            <div style={{ minHeight: 220, height: 220 }} className="flex items-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -266,7 +266,7 @@ export default function SynapsesIDRPage() {
         {/* ── IDR Insurance Wise (H-bar) ───────────────────────────────── */}
         <ChartCard title="IDR Insurance Wise">
           {insLoad ? <Skeleton /> : (
-            <div style={{ height: 220 }} className="overflow-y-auto">
+            <div style={{ minHeight: 220, height: 220 }} className="overflow-y-auto">
               <ResponsiveContainer width="100%" height={Math.max(insData.length * 26, 200)}>
                 <BarChart
                   data={insData}

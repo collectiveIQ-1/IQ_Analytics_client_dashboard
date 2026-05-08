@@ -361,7 +361,7 @@ export default function SynapsesProductionPage() {
         {/* ══ DOS view — grouped bar chart ══════════════════════════════════ */}
         {view === 'dos' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {dosLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -410,7 +410,7 @@ export default function SynapsesProductionPage() {
         {/* ══ DOE view — single blue bar chart ══════════════════════════════ */}
         {view === 'doe' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {doeLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={doeChart || []} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
@@ -459,7 +459,7 @@ export default function SynapsesProductionPage() {
         {/* ══ DOS / DOE — Reimbursement Analysis table ══════════════════════ */}
         {(view === 'dos' || view === 'doe') && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable
                 data={activeTable}
                 loading={tableFetching}
@@ -489,7 +489,7 @@ export default function SynapsesProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   All Time Adjustment History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {adjLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -536,7 +536,7 @@ export default function SynapsesProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Deposit by Payer
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {payerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -578,7 +578,7 @@ export default function SynapsesProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {pmtLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -619,7 +619,7 @@ export default function SynapsesProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Deposit by Billing Entity
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {billerLoad ? <ChartSkeleton height={310} /> : !billerData?.length ? (
                     <div className="flex items-center justify-center h-full text-slate-400 text-xs">No data available</div>
                   ) : (

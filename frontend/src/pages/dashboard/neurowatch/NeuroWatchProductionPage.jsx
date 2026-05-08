@@ -364,7 +364,7 @@ export default function NeuroWatchProductionPage() {
         {/* ══ DOS — grouped bar chart ════════════════════════════════════════ */}
         {view === 'dos' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {dosLoad ? <ChartSkeleton height={380} />
                : dosErr || !dosChart?.length ? <ChartEmpty height={380} />
                : (
@@ -415,7 +415,7 @@ export default function NeuroWatchProductionPage() {
         {/* ══ DOE — single blue bar chart ════════════════════════════════════ */}
         {view === 'doe' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {doeLoad ? <ChartSkeleton height={380} />
                : doeErr || !doeChart?.length ? <ChartEmpty height={380} />
                : (
@@ -466,7 +466,7 @@ export default function NeuroWatchProductionPage() {
         {/* ══ DOS/DOE — Reimbursement Analysis table ═════════════════════════ */}
         {(view === 'dos' || view === 'doe') && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable
                 data={activeTable}
                 loading={tableFetching}
@@ -496,7 +496,7 @@ export default function NeuroWatchProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Adjustment History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {adjLoad ? <ChartSkeleton height={240} />
                    : adjErr || !adjData?.length ? <ChartEmpty height={240} />
                    : (
@@ -545,7 +545,7 @@ export default function NeuroWatchProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Payer Wise
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {payerLoad ? <ChartSkeleton height={240} />
                    : payerErr || !payerData?.length ? <ChartEmpty height={240} />
                    : (
@@ -589,7 +589,7 @@ export default function NeuroWatchProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {pmtLoad ? <ChartSkeleton height={240} />
                    : pmtErr || !pmtData?.length ? <ChartEmpty height={240} />
                    : (
@@ -632,7 +632,7 @@ export default function NeuroWatchProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Biller Entity
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {billerLoad ? <ChartSkeleton height={240} />
                    : billerErr || !billerData?.length ? <ChartEmpty height={240} />
                    : (

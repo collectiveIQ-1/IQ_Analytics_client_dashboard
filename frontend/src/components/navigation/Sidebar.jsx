@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Users, Settings,
-  ChevronLeft, ChevronRight, LogOut, KeyRound,
+  ChevronLeft, ChevronRight, LogOut, KeyRound, X,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -26,11 +26,10 @@ const ROLE_LABELS = {
   client:      'Client',
 };
 
-/* Sidebar: deep green gradient (light) / pure black (dark) */
 const LIGHT_BG = 'linear-gradient(180deg, #7f1d1d 0%, #991b1b 55%, #450a0a 100%)';
 const DARK_BG  = 'linear-gradient(180deg, #000000 0%, #050505 50%, #000000 100%)';
 
-export default function Sidebar({ role }) {
+export default function Sidebar({ role, onClose }) {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
   const { theme } = useTheme();
@@ -38,9 +37,7 @@ export default function Sidebar({ role }) {
 
   const isAdminLevel = role === 'admin' || role === 'super_admin';
   const nav = isAdminLevel ? adminNav : clientNav;
-
   const isDark = theme === 'dark';
-
   const changePasswordTo = isAdminLevel ? '/admin/change-password' : '/change-password';
 
   const handleLogout = () => {
@@ -64,12 +61,11 @@ export default function Sidebar({ role }) {
   const activeLink   = isDark
     ? 'bg-red-600 text-white shadow-md shadow-red-900/50'
     : 'bg-white text-red-700 shadow-md shadow-red-900/40';
-  const logoBg       = isDark ? 'bg-zinc-900 ring-1 ring-zinc-800' : 'bg-white/10';
 
   return (
     <aside
       className={`
-        relative flex flex-col text-white flex-shrink-0
+        relative flex flex-col text-white flex-shrink-0 h-full
         transition-all duration-300 ease-in-out
         ${collapsed ? 'w-[70px]' : 'w-64'}
       `}
@@ -81,28 +77,38 @@ export default function Sidebar({ role }) {
         borderRight: isDark ? '1px solid #18181b' : 'none',
       }}
     >
-      {/* ── Logo ────────────────────────────────────── */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b ${borderCls} min-h-[96px] ${collapsed ? 'justify-center px-0' : ''}`}>
-        <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+      {/* ── Logo + mobile close ───────────────────────────────── */}
+      <div className={`flex items-center gap-3 px-4 py-5 border-b ${borderCls} min-h-[72px] md:min-h-[96px] ${collapsed ? 'justify-center px-0' : ''}`}>
+        <div className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center flex-shrink-0">
           <img
             src={collectiveLogo}
             alt="IQ Dashboard logo"
-            className="w-12 h-12 object-contain"
+            className="w-10 h-10 md:w-12 md:h-12 object-contain"
             style={{ imageRendering: 'auto', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.35))' }}
           />
         </div>
         {!collapsed && (
-          <div className="overflow-hidden">
+          <div className="flex-1 overflow-hidden">
             <p className="text-sm font-bold text-white leading-tight tracking-tight">IQ Dashboard</p>
             <p className={`text-xs mt-0.5 ${mutedText}`}>{portalLabel} Portal</p>
           </div>
         )}
+        {/* Mobile close button */}
+        {onClose && !collapsed && (
+          <button
+            onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+            aria-label="Close sidebar"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
-      {/* ── Collapse toggle ──────────────────────────── */}
+      {/* ── Collapse toggle (desktop only) ──────────────────── */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className={`absolute -right-3 top-16 w-6 h-6 rounded-full flex items-center justify-center z-10 shadow-md transition-colors duration-150
+        className={`hidden lg:flex absolute -right-3 top-16 w-6 h-6 rounded-full items-center justify-center z-10 shadow-md transition-colors duration-150
                    ${isDark
                      ? 'bg-zinc-900 hover:bg-red-600 border border-zinc-700'
                      : 'bg-red-700 hover:bg-red-500 border border-red-500/60'}`}
@@ -113,7 +119,7 @@ export default function Sidebar({ role }) {
         }
       </button>
 
-      {/* ── Navigation ──────────────────────────────── */}
+      {/* ── Navigation ──────────────────────────────────────── */}
       <nav className={`flex-1 py-4 space-y-1 ${collapsed ? 'px-2' : 'px-3'}`}>
         {!collapsed && (
           <p className={`text-[10px] font-semibold uppercase tracking-widest px-3 mb-2 ${sectionMuted}`}>
@@ -126,6 +132,7 @@ export default function Sidebar({ role }) {
             to={to}
             end={end}
             title={collapsed ? label : undefined}
+            onClick={onClose}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-150
                ${collapsed ? 'justify-center px-0 py-3' : 'px-3 py-2.5'}
@@ -135,7 +142,7 @@ export default function Sidebar({ role }) {
             {({ isActive }) => {
               const iconCls = isActive
                 ? (isDark ? 'text-white' : 'text-red-700')
-                : (isDark ? 'text-zinc-400 group-hover:text-white' : 'text-red-100/70 group-hover:text-white');
+                : (isDark ? 'text-zinc-400' : 'text-red-100/70');
               return (
                 <>
                   <Icon size={18} className={iconCls} />
@@ -147,7 +154,7 @@ export default function Sidebar({ role }) {
         ))}
       </nav>
 
-      {/* ── User profile area ───────────────────────── */}
+      {/* ── User profile area ───────────────────────────────── */}
       <div className={`border-t ${borderCls} p-3 ${collapsed ? 'flex flex-col items-center gap-2' : ''}`}>
         {collapsed ? (
           <>

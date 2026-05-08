@@ -324,7 +324,7 @@ export default function USNeuroProductionPage() {
         {/* ══ DOS view — grouped bar chart ══════════════════════════════════ */}
         {view === 'dos' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {dosLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -359,7 +359,7 @@ export default function USNeuroProductionPage() {
         {/* ══ DOE view — single blue bar chart ══════════════════════════════ */}
         {view === 'doe' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 380 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 380, height: 380 }}>
               {doeLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={doeChart || []} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
@@ -396,7 +396,7 @@ export default function USNeuroProductionPage() {
         {/* ══ DOS / DOE — Reimbursement Analysis table ══════════════════════ */}
         {(view === 'dos' || view === 'doe') && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable data={activeTable} loading={tableFetching} />
             </div>
             <div className="flex justify-end px-4 pb-4">
@@ -420,7 +420,7 @@ export default function USNeuroProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Adjustment History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {adjLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -450,7 +450,7 @@ export default function USNeuroProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Payer Wise
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {payerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -482,7 +482,7 @@ export default function USNeuroProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments History
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {pmtLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -507,7 +507,7 @@ export default function USNeuroProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Biller Entity
                 </p>
-                <div style={{ height: 240 }}>
+                <div style={{ minHeight: 240, height: 240 }}>
                   {billerLoad ? <ChartSkeleton height={310} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart

@@ -85,10 +85,10 @@ export default function SynapsesDashboard({ clientId }) {
   }, [activeTab]);
 
   return (
-    <div className="-mt-2" ref={contentRef}>
+    <div className="-mt-2 min-w-0" ref={contentRef}>
       <div className="flex items-center justify-between gap-2">
         <div className="overflow-x-auto flex-1">
-          <nav className="flex gap-0.5 border-b border-slate-100 dark:border-zinc-800">
+          <nav className="flex gap-0.5 border-b border-slate-100 dark:border-zinc-800 min-w-max">
             {TABS.map(({ id, label, icon: Icon }) => {
               const isActive = activeTab === id;
               return (
@@ -96,7 +96,7 @@ export default function SynapsesDashboard({ clientId }) {
                   key={id}
                   onClick={() => handleTabClick(id)}
                   className={[
-                    'flex items-center gap-2 px-4 py-3 text-sm font-semibold',
+                    'flex items-center gap-1.5 md:gap-2 px-2 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-semibold',
                     'whitespace-nowrap transition-all duration-150 border-b-2 -mb-px',
                     isActive
                       ? 'border-red-600 text-red-600 dark:text-red-400 dark:border-red-500'

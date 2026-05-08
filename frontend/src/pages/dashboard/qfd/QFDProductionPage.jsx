@@ -343,7 +343,7 @@ export default function QFDProductionPage() {
         {/* ══ DOS view — grouped bar chart ══════════════════════════════════ */}
         {view === 'dos' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 500 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 500, height: 500 }}>
               {dosLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -380,7 +380,7 @@ export default function QFDProductionPage() {
         {/* ══ DOS — Reimbursement Analysis table ════════════════════════════ */}
         {view === 'dos' && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable data={dosTable} loading={dosTblLoad} activeView="dos" />
             </div>
             <div className="flex justify-end px-4 pb-4">
@@ -395,7 +395,7 @@ export default function QFDProductionPage() {
         {/* ══ DOE view — single blue bar chart ══════════════════════════════ */}
         {view === 'doe' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 500 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 500, height: 500 }}>
               {doeLoad ? <ChartSkeleton height={380} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={doeChart || []} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
@@ -444,7 +444,7 @@ export default function QFDProductionPage() {
         {/* ══ DOE — Reimbursement Analysis table ════════════════════════════ */}
         {view === 'doe' && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable data={doeTable} loading={doeTblLoad} activeView="doe" />
             </div>
             <div className="flex justify-end px-4 pb-4">
@@ -464,7 +464,7 @@ export default function QFDProductionPage() {
               <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                 Last 12 Months Adjustment History
               </p>
-              <div style={{ height: 260 }}>
+              <div style={{ minHeight: 260, height: 260 }}>
                 {adjLoad ? <ChartSkeleton height={260} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -498,7 +498,7 @@ export default function QFDProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments History
                 </p>
-                <div style={{ height: 260 }}>
+                <div style={{ minHeight: 260, height: 260 }}>
                   {pmtLoad ? <ChartSkeleton height={260} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -529,7 +529,7 @@ export default function QFDProductionPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Payment Method
                 </p>
-                <div style={{ height: 260 }}>
+                <div style={{ minHeight: 260, height: 260 }}>
                   {methodLoad ? <ChartSkeleton height={220} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -572,7 +572,7 @@ export default function QFDProductionPage() {
         {/* ══ DOD — Reimbursement table ══════════════════════════════════════ */}
         {view === 'dod' && showMore && (
           <>
-            <div className="px-4 pb-2">
+            <div className="px-2 md:px-4 pb-2">
               <ReimbursementTable data={dodTable} loading={dodTblLoad} activeView="dod" />
             </div>
             <div className="flex justify-end px-4 pb-4">

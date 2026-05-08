@@ -37,7 +37,7 @@ export default function QFDChartCard({
       className={outerClass}
     >
       {/* Header — left red accent stripe + bold title */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-zinc-800/60 flex-shrink-0 bg-slate-50/60 dark:bg-zinc-900/40">
+      <div className="flex items-center justify-between px-3 md:px-4 py-2.5 md:py-3 border-b border-slate-100 dark:border-zinc-800/60 flex-shrink-0 bg-slate-50/60 dark:bg-zinc-900/40">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-0.5 h-4 rounded-full bg-red-500 flex-shrink-0" />
           <h3 className="text-[11px] font-bold text-slate-600 dark:text-zinc-300 uppercase tracking-widest truncate">
@@ -66,10 +66,13 @@ export default function QFDChartCard({
         )}
       </div>
 
-      {/* Body */}
-      <div style={{ height: height + 'px' }} className="relative p-2.5 flex-shrink-0 transition-all duration-300">
+      {/* Body — minHeight ensures charts are visible on small screens */}
+      <div
+        style={{ minHeight: Math.max(height, 160) + 'px', height: height + 'px' }}
+        className="relative p-2 md:p-2.5 flex-shrink-0 transition-all duration-300 overflow-hidden"
+      >
         {loading ? (
-          <div className="absolute inset-2.5 bg-slate-50 dark:bg-zinc-900 rounded-xl animate-pulse" />
+          <div className="absolute inset-2 md:inset-2.5 bg-slate-50 dark:bg-zinc-900 rounded-xl animate-pulse" />
         ) : (
           children
         )}

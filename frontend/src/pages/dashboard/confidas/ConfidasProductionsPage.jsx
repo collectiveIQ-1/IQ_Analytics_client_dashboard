@@ -262,7 +262,7 @@ export default function ConfidasProductionsPage() {
         {/* ══ DOS — grouped bar chart ═══════════════════════════════════════ */}
         {view === 'dos' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 520 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 520, height: 520 }}>
               {dosLoad ? <ChartSkeleton height={460} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -323,7 +323,7 @@ export default function ConfidasProductionsPage() {
         {/* ══ DOE — single blue bar chart ══════════════════════════════════ */}
         {view === 'doe' && !showMore && (
           <>
-            <div className="px-4 pb-2" style={{ height: 520 }}>
+            <div className="px-2 md:px-4 pb-2" style={{ minHeight: 520, height: 520 }}>
               {doeLoad ? <ChartSkeleton height={460} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={doeChart || []} margin={{ top: 30, right: 20, left: 10, bottom: 10 }}>
@@ -405,7 +405,7 @@ export default function ConfidasProductionsPage() {
               <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                 Last 12 Months Adjustment History
               </p>
-              <div style={{ height: 280 }}>
+              <div style={{ minHeight: 280, height: 280 }}>
                 {adjLoad ? <ChartSkeleton height={280} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={adjData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -438,7 +438,7 @@ export default function ConfidasProductionsPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments History
                 </p>
-                <div style={{ height: 260 }}>
+                <div style={{ minHeight: 260, height: 260 }}>
                   {pmtLoad ? <ChartSkeleton height={320} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={pmtData || []} margin={{ top: 28, right: 20, left: 10, bottom: 10 }}>
@@ -464,7 +464,7 @@ export default function ConfidasProductionsPage() {
                 <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                   Last 12 Months Payments by Payment Method
                 </p>
-                <div style={{ height: 260 }}>
+                <div style={{ minHeight: 260, height: 260 }}>
                   {methodLoad ? <ChartSkeleton height={320} /> : (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart

@@ -277,7 +277,7 @@ export default function CompleteNeuroARPage() {
               </button>
             </div>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-2 md:px-4 pb-4">
             {expandView === 'insurance' && <PivotTable data={insData}  loading={insLoad}  title="Insurance Type" />}
             {expandView === 'surgeon'   && <PivotTable data={surgData} loading={surgLoad} title="Surgeon" />}
           </div>
@@ -297,7 +297,7 @@ export default function CompleteNeuroARPage() {
               Compress
             </button>
           </div>
-          <div className="px-4 pb-4" style={{ height: 520 }}>
+          <div className="px-2 md:px-4 pb-4" style={{ minHeight: 520, height: 520 }}>
             {insLoad ? <Skeleton h={500} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <Treemap data={treemapData} dataKey="size" nameKey="name" aspectRatio={4/3}
@@ -377,7 +377,7 @@ export default function CompleteNeuroARPage() {
               <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                 Accounts Receivable ({vLabel})
               </p>
-              <div style={{ height: 300 }}>
+              <div style={{ minHeight: 300, height: 300 }}>
                 {chartLoad ? <Skeleton h={280} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData || []}
@@ -405,7 +405,7 @@ export default function CompleteNeuroARPage() {
               <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 mb-1 px-1">
                 Accounts Receivable Percentage ({vLabel})
               </p>
-              <div style={{ height: 300 }}>
+              <div style={{ minHeight: 300, height: 300 }}>
                 {chartLoad ? <Skeleton h={280} /> : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -446,7 +446,7 @@ export default function CompleteNeuroARPage() {
           </div>
 
           {/* Row 2: Treemap */}
-          <div className="px-4 pb-4">
+          <div className="px-2 md:px-4 pb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-[11px] font-semibold text-slate-600 dark:text-zinc-300 px-1">AR by Carrier</p>
               <button onClick={() => setExpandView('treemap')}
@@ -454,7 +454,7 @@ export default function CompleteNeuroARPage() {
                 Expand
               </button>
             </div>
-            <div style={{ height: 320 }}>
+            <div style={{ minHeight: 320, height: 320 }}>
               {insLoad ? <Skeleton h={300} /> : (
                 <ResponsiveContainer width="100%" height="100%">
                   <Treemap data={treemapData} dataKey="size" nameKey="name" aspectRatio={4/3}

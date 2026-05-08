@@ -509,7 +509,7 @@ function DodMainView({ onMore }) {
           <p className="text-[13px] font-semibold text-slate-700 dark:text-zinc-200 mb-3">
             All Time Adjustment History
           </p>
-          <div style={{ height: 220 }}>
+          <div style={{ minHeight: 220, height: 220 }}>
             {adjLoad ? <ChartSkeleton height={220} /> : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={adjData || []} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>
@@ -536,7 +536,7 @@ function DodMainView({ onMore }) {
           {entityLoad ? <ChartSkeleton height={220} /> : !entityData?.length ? (
             <div className="flex items-center justify-center h-[220px] text-slate-400 text-sm">No data</div>
           ) : (
-            <div className="flex gap-3" style={{ height: 220 }}>
+            <div className="flex gap-3" style={{ minHeight: 220, height: 220 }}>
               <ResponsiveContainer width="55%" height="100%">
                 <PieChart>
                   <Pie
@@ -575,7 +575,7 @@ function DodMainView({ onMore }) {
         <p className="text-[13px] font-semibold text-slate-700 dark:text-zinc-200 mb-3">
           Last 12 Months Payments History
         </p>
-        <div style={{ height: 220 }}>
+        <div style={{ minHeight: 220, height: 220 }}>
           {pmtLoad ? <ChartSkeleton height={220} /> : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={pmtData || []} margin={{ top: 24, right: 16, left: 8, bottom: 4 }}>

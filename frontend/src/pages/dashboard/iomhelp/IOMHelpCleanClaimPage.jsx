@@ -108,7 +108,7 @@ export default function IOMHelpCleanClaimPage({ onNavigate }) {
             Monthly CCR trend — goal line at 95%
           </p>
         </div>
-        <div style={{ height: 320 }} className="p-4">
+        <div style={{ minHeight: 320, height: 320 }} className="p-4">
           {ccrLoading ? (
             <div className="h-full bg-slate-50 dark:bg-zinc-900 rounded-xl animate-pulse" />
           ) : (

@@ -190,7 +190,7 @@ export default function ConfidasPaymentsPage() {
           </div>
         </div>
 
-        <div style={{ height: 300 }} className="p-4">
+        <div style={{ minHeight: 300, height: 300 }} className="p-4">
           {lineLoading ? (
             <div className="h-full bg-slate-50 dark:bg-zinc-900 rounded-xl animate-pulse" />
           ) : (
