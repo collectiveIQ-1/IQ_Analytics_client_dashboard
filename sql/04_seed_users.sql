@@ -14,7 +14,7 @@ SELECT
   '$2b$12$P8fNNJNI3tQZla9cfyyy5OgpXtYNMhHgqgM11G2DgOK4.qH139OTK',
   'IQ Admin',
   r.id
-FROM public.roles r WHERE r.name = 'admin'
+FROM public.roles r WHERE r.name = 'super_admin'
 ON CONFLICT (email) DO NOTHING;
 
 -- Sample client user (QFD)
