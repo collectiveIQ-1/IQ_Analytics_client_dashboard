@@ -75,6 +75,7 @@ export default function Sidebar({ role, onClose }) {
           ? '4px 0 24px 0 rgba(0,0,0,0.75)'
           : '4px 0 24px 0 rgb(0 0 0 / 0.22)',
         borderRight: isDark ? '1px solid #18181b' : 'none',
+        overflow: 'visible',
       }}
     >
       {/* ── Logo + mobile close ───────────────────────────────── */}
@@ -108,7 +109,7 @@ export default function Sidebar({ role, onClose }) {
       {/* ── Collapse toggle (desktop only) ──────────────────── */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className={`hidden lg:flex absolute -right-3 top-16 w-6 h-6 rounded-full items-center justify-center z-10 shadow-md transition-colors duration-150
+        className={`hidden lg:flex absolute -right-3 top-16 w-6 h-6 rounded-full items-center justify-center z-50 shadow-md transition-colors duration-150
                    ${isDark
                      ? 'bg-zinc-900 hover:bg-red-600 border border-zinc-700'
                      : 'bg-red-700 hover:bg-red-500 border border-red-500/60'}`}

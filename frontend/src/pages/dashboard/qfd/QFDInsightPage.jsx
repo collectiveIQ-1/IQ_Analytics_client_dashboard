@@ -86,24 +86,26 @@ function XAxisRuler({ maxVal, labelW }) {
 }
 
 // ── Single metric row ─────────────────────────────────────────────────────────
-function MetricRow({ label, value, barVal, maxVal, barColor }) {
+function MetricRow({ label, value, barVal, maxVal, barColor, rowH = 26 }) {
   const isBar = barVal != null && barVal > 0;
   const pct   = isBar ? Math.min((barVal / maxVal) * 100, 100) : 0;
+  const barH  = Math.max(14, rowH - 10);
+  const fontSize = rowH >= 40 ? '11px' : '10px';
 
   return (
-    <div className="flex items-center h-[26px] text-[10px]">
+    <div className="flex items-center" style={{ height: rowH, fontSize }}>
       <div className="flex-none w-[140px] text-slate-500 dark:text-zinc-400 pl-1 leading-tight">
         {label}
       </div>
       {isBar ? (
-        <div className="relative flex-1 h-[18px] mr-2">
+        <div className="relative flex-1 mr-2" style={{ height: barH }}>
           <div
             className="absolute top-0 left-0 h-full rounded-sm"
             style={{ width: `${pct}%`, backgroundColor: barColor }}
           />
           <span
-            className="absolute top-0 h-full flex items-center font-bold text-slate-700 dark:text-zinc-200 text-[10px] whitespace-nowrap"
-            style={{ left: `calc(${pct}% + 4px)` }}
+            className="absolute top-0 h-full flex items-center font-bold text-slate-700 dark:text-zinc-200 whitespace-nowrap"
+            style={{ left: `calc(${pct}% + 4px)`, fontSize }}
           >
             {value}
           </span>
@@ -118,7 +120,7 @@ function MetricRow({ label, value, barVal, maxVal, barColor }) {
 }
 
 // ── Group block ───────────────────────────────────────────────────────────────
-function GroupBlock({ row, maxVal, colors, isLast }) {
+function GroupBlock({ row, maxVal, colors, isLast, rowH = 26 }) {
   const metrics = [
     { label: 'Procedure Count',    value: fmtCount(row.procedure_count),   bar: false },
     { label: 'Procedure %',        value: fmtPct(row.procedure_pct),       bar: false },
@@ -146,6 +148,7 @@ function GroupBlock({ row, maxVal, colors, isLast }) {
             barVal={m.bar ? m.barVal : null}
             maxVal={maxVal}
             barColor={m.barColor}
+            rowH={rowH}
           />
         ))}
       </div>
@@ -156,6 +159,8 @@ function GroupBlock({ row, maxVal, colors, isLast }) {
 // ── Insight chart component ───────────────────────────────────────────────────
 function InsightChart({ data, colors, loading, error, onRetry }) {
   const LABEL_W = 130 + 140;
+  const CARD_H  = 520;
+  const METRICS_PER_GROUP = 8;
 
   const maxVal = useMemo(() => {
     if (!data?.length) return 100_000;
@@ -165,6 +170,16 @@ function InsightChart({ data, colors, loading, error, onRetry }) {
       Number(r.total_adjustments || 0),
     ]);
     return niceMax(Math.max(...allBars, 1));
+  }, [data]);
+
+  // Scale row height up when few groups so chart fills the card area
+  const rowH = useMemo(() => {
+    if (!data?.length) return 26;
+    const perGroupOverhead = 20;
+    const totalOverhead = data.length * perGroupOverhead;
+    const available = CARD_H - totalOverhead - 32;
+    const computed = Math.floor(available / (data.length * METRICS_PER_GROUP));
+    return Math.max(26, Math.min(computed, 60));
   }, [data]);
 
   if (loading) {
@@ -229,6 +244,7 @@ function InsightChart({ data, colors, loading, error, onRetry }) {
           maxVal={maxVal}
           colors={colors}
           isLast={i === data.length - 1}
+          rowH={rowH}
         />
       ))}
       <XAxisRuler maxVal={maxVal} labelW={LABEL_W} />

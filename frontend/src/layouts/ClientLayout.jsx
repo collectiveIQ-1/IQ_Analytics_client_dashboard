@@ -36,7 +36,7 @@ export default function ClientLayout() {
       <div
         className={[
           'fixed inset-y-0 left-0 z-40',
-          'lg:static lg:z-auto lg:translate-x-0',
+          'lg:static lg:z-50 lg:translate-x-0 overflow-visible',
           'transition-transform duration-300 ease-in-out',
           mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         ].join(' ')}

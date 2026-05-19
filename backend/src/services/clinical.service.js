@@ -307,7 +307,54 @@ async function getByRunBy(limit = 20) {
   }, []);
 }
 
-// ── 10. Debug: list actual columns ────────────────────────────────────────────
+// ── 10. Monthly Volume (one data point per month) ─────────────────────────────
+async function getMonthlyVolume() {
+  return safeQuery('getMonthlyVolume', async () => {
+    const sql = `
+      SELECT
+        TO_CHAR(DATE_TRUNC('month', weekendingdate), 'YYYY-MM-DD')                         AS month,
+        COUNT(DISTINCT CASE WHEN UPPER(toxpcr::text) = 'PCR' THEN accession END)           AS pcr_count,
+        COUNT(DISTINCT CASE WHEN UPPER(toxpcr::text) = 'TOX' THEN accession END)           AS tox_count,
+        COUNT(DISTINCT accession)                                                           AS total_count,
+        COUNT(DISTINCT ${safeName})                                                         AS active_clinics
+      FROM ${SCHEMA}.${TABLE}
+      GROUP BY DATE_TRUNC('month', weekendingdate)
+      ORDER BY DATE_TRUNC('month', weekendingdate)
+    `;
+    return query(sql);
+  }, []);
+}
+
+// ── 11. Monthly Accounts (active + new clinics per month) ────────────────────
+async function getMonthlyAccounts() {
+  return safeQuery('getMonthlyAccounts', async () => {
+    const sql = `
+      WITH clinic_months AS (
+        SELECT
+          DATE_TRUNC('month', weekendingdate)                                               AS month,
+          ${safeName}                                                                       AS clinic
+        FROM ${SCHEMA}.${TABLE}
+        GROUP BY DATE_TRUNC('month', weekendingdate), grouplocation
+      ),
+      first_seen AS (
+        SELECT clinic, MIN(month) AS first_month
+        FROM clinic_months
+        GROUP BY clinic
+      )
+      SELECT
+        TO_CHAR(cm.month, 'YYYY-MM-DD')                                                    AS month,
+        COUNT(DISTINCT cm.clinic)                                                           AS active_clinics,
+        COUNT(DISTINCT CASE WHEN cm.month = fs.first_month THEN cm.clinic END)             AS new_clinics
+      FROM clinic_months cm
+      JOIN first_seen fs ON fs.clinic = cm.clinic
+      GROUP BY cm.month
+      ORDER BY cm.month
+    `;
+    return query(sql);
+  }, []);
+}
+
+// ── 12. Debug: list actual columns ───────────────────────────────────────────
 async function getDebugColumns() {
   return safeQuery('getDebugColumns', async () => {
     const sql = `
@@ -324,6 +371,8 @@ module.exports = {
   getOverview,
   getWeeklyVolume,
   getWeeklyAccounts,
+  getMonthlyVolume,
+  getMonthlyAccounts,
   getClinicSummary,
   getClinicWeekly,
   getByProvider,

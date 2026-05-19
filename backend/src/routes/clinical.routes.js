@@ -11,8 +11,12 @@ router.use(authMiddleware);
 router.get('/overview',        clinicalController.getOverview);
 
 // Weekly trends
-router.get('/weekly-volume',   clinicalController.getWeeklyVolume);   // PCR + TOX per week
-router.get('/weekly-accounts', clinicalController.getWeeklyAccounts); // Active / new clinics per week
+router.get('/weekly-volume',    clinicalController.getWeeklyVolume);   // PCR + TOX per week
+router.get('/weekly-accounts',  clinicalController.getWeeklyAccounts); // Active / new clinics per week
+
+// Monthly trends (one point per month)
+router.get('/monthly-volume',   clinicalController.getMonthlyVolume);   // Monthly PCR + TOX totals
+router.get('/monthly-accounts', clinicalController.getMonthlyAccounts); // Monthly active + new clinics
 
 // Clinic-level data
 router.get('/clinic-summary',  clinicalController.getClinicSummary);  // Per-clinic totals (ranked bar + donut)

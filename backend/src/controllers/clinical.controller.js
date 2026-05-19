@@ -72,6 +72,18 @@ async function getByRunBy(req, res) {
   catch (e) { err(res, e, 'getByRunBy'); }
 }
 
+// GET /api/clinical/monthly-volume
+async function getMonthlyVolume(req, res) {
+  try { ok(res, await svc.getMonthlyVolume()); }
+  catch (e) { err(res, e, 'getMonthlyVolume'); }
+}
+
+// GET /api/clinical/monthly-accounts
+async function getMonthlyAccounts(req, res) {
+  try { ok(res, await svc.getMonthlyAccounts()); }
+  catch (e) { err(res, e, 'getMonthlyAccounts'); }
+}
+
 // GET /api/clinical/debug/columns
 async function getDebugColumns(req, res) {
   try { ok(res, await svc.getDebugColumns()); }
@@ -82,6 +94,8 @@ module.exports = {
   getOverview,
   getWeeklyVolume,
   getWeeklyAccounts,
+  getMonthlyVolume,
+  getMonthlyAccounts,
   getClinicSummary,
   getClinicWeekly,
   getByProvider,

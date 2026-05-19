@@ -26,13 +26,21 @@ const Q = {
 
 // ── Color palette ─────────────────────────────────────────────────────────────
 const C = {
-  pcr:     '#2563eb',   // blue-600 (higher contrast on white cards)
-  tox:     '#f59e0b',   // amber
-  total:   '#6366f1',   // indigo
+  pcr:     '#3b82f6',   // blue-500
+  tox:     '#f97316',   // orange-500
+  total:   '#8b5cf6',   // violet-500
   clinics: '#10b981',   // emerald
-  newClin: '#f97316',   // orange
+  newClin: '#06b6d4',   // cyan
   charge:  '#163d5c',
   payment: '#e07b39',
+};
+
+// Per-chart color pairs for Clinical Detail — each chart gets its own distinct palette
+const DETAIL_COLORS = {
+  provider:  { tox: '#3b82f6', pcr: '#93c5fd' },  // blue-500 / blue-300
+  panel:     { tox: '#10b981', pcr: '#6ee7b7' },  // emerald-500 / emerald-300
+  specimen:  { tox: '#8b5cf6', pcr: '#c4b5fd' },  // violet-500 / violet-300
+  technician:{ tox: '#f59e0b', pcr: '#fcd34d' },  // amber-500 / amber-300
 };
 
 const TAB_COLORS = [
@@ -55,6 +63,12 @@ function fmtWeek(w) {
   if (!w) return '';
   const d = new Date(w);
   return isNaN(d) ? w : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function fmtMonth(m) {
+  if (!m) return '';
+  const d = new Date(m);
+  return isNaN(d) ? m : d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
 }
 
 // ── nice Y-axis ceiling ───────────────────────────────────────────────────────
@@ -135,7 +149,8 @@ function Empty() {
 // SVG Line Chart (multi-series) — with hover tooltip overlay
 // series: [{ key, label, color, data: [{x, y}] }]
 // ─────────────────────────────────────────────────────────────────────────────
-function LineChart({ series, xLabels, height = 220, loading, error, onRetry }) {
+function LineChart({ series, xLabels, height = 220, loading, error, onRetry, labelFormatter }) {
+  const fmtLabel = labelFormatter || fmtWeek;
   const [hovered, setHovered] = useState(null); // { idx, pctX }
   const svgRef = useRef(null);
 
@@ -219,7 +234,7 @@ function LineChart({ series, xLabels, height = 220, loading, error, onRetry }) {
               x={xScale(i)} y={PAD_T + chartH + 14}
               textAnchor="middle" fontSize={8.5} fill="#64748b"
             >
-              {fmtWeek(lbl)}
+              {fmtLabel(lbl)}
             </text>
           );
         })}
@@ -277,7 +292,7 @@ function LineChart({ series, xLabels, height = 220, loading, error, onRetry }) {
           }}
         >
           <div className="text-[10px] font-bold text-slate-600 dark:text-zinc-300 mb-1.5 border-b border-slate-100 dark:border-zinc-700 pb-1">
-            {fmtWeek(xLabels[hovered.idx])}
+            {fmtLabel(xLabels[hovered.idx])}
           </div>
           {series.map((s) => (
             <div key={s.key} className="flex items-center justify-between gap-3 py-0.5">
@@ -459,14 +474,14 @@ function DonutChart({ slices, loading, error, onRetry }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAB 1 — Weekly Overview
+// TAB 1 — Monthly Overview
 // ─────────────────────────────────────────────────────────────────────────────
 function WeeklyOverviewTab({ onRetry }) {
-  const volumeQ   = useQuery({ queryKey: ['clinical-weekly-volume'],   queryFn: () => clinicalApi.getWeeklyVolume().then((r) => r.data?.data || []),   ...Q });
-  const accountsQ = useQuery({ queryKey: ['clinical-weekly-accounts'], queryFn: () => clinicalApi.getWeeklyAccounts().then((r) => r.data?.data || []), ...Q });
+  const volumeQ   = useQuery({ queryKey: ['clinical-monthly-volume'],   queryFn: () => clinicalApi.getMonthlyVolume().then((r) => r.data?.data || []),   ...Q });
+  const accountsQ = useQuery({ queryKey: ['clinical-monthly-accounts'], queryFn: () => clinicalApi.getMonthlyAccounts().then((r) => r.data?.data || []), ...Q });
 
   // Volume chart series
-  const xLabels = useMemo(() => (volumeQ.data || []).map((r) => r.week), [volumeQ.data]);
+  const xLabels = useMemo(() => (volumeQ.data || []).map((r) => r.month), [volumeQ.data]);
 
   const volumeSeries = useMemo(() => [
     { key: 'tox',   label: 'TOX',        color: C.tox,   data: (volumeQ.data || []).map((r) => ({ y: Number(r.tox_count   || 0) })) },
@@ -479,7 +494,7 @@ function WeeklyOverviewTab({ onRetry }) {
     { key: 'new',    label: 'New Clinics',    color: C.newClin, data: (accountsQ.data || []).map((r) => ({ y: Number(r.new_clinics    || 0) })) },
   ], [accountsQ.data]);
 
-  const accountXLabels = useMemo(() => (accountsQ.data || []).map((r) => r.week), [accountsQ.data]);
+  const accountXLabels = useMemo(() => (accountsQ.data || []).map((r) => r.month), [accountsQ.data]);
 
   // Summary stats from volume data
   const summary = useMemo(() => {
@@ -494,8 +509,8 @@ function WeeklyOverviewTab({ onRetry }) {
   return (
     <div className="space-y-5">
 
-      {/* Weekly volume line chart */}
-      <Card title="Weekly Volume — TOX / PCR / Total" subtitle="Distinct accessions per week">
+      {/* Monthly volume line chart */}
+      <Card title="Monthly Volume — TOX / PCR / Total" subtitle="Distinct accessions per month">
         <LineChart
           series={volumeSeries}
           xLabels={xLabels}
@@ -503,11 +518,12 @@ function WeeklyOverviewTab({ onRetry }) {
           loading={volumeQ.isFetching}
           error={volumeQ.isError}
           onRetry={onRetry}
+          labelFormatter={fmtMonth}
         />
       </Card>
 
-      {/* Weekly active + new clinics */}
-      <Card title="Weekly Accounts — Active & New Clinics" subtitle="Clinics submitting at least 1 accession per week">
+      {/* Monthly active + new clinics */}
+      <Card title="Monthly Accounts — Active & New Clinics" subtitle="Clinics submitting at least 1 accession per month">
         <LineChart
           series={accountsSeries}
           xLabels={accountXLabels}
@@ -515,6 +531,7 @@ function WeeklyOverviewTab({ onRetry }) {
           loading={accountsQ.isFetching}
           error={accountsQ.isError}
           onRetry={onRetry}
+          labelFormatter={fmtMonth}
         />
       </Card>
 
@@ -893,8 +910,8 @@ function ClinicalDetailTab({ onRetry }) {
         <Card title="Volume by Ordering Provider" subtitle="TOX (top) vs PCR (bottom) — top 25">
           <HBarChart
             rows={provRows}
-            color1={C.tox}
-            color2={C.pcr}
+            color1={DETAIL_COLORS.provider.tox}
+            color2={DETAIL_COLORS.provider.pcr}
             label1="TOX"
             label2="PCR"
             loading={providerQ.isFetching}
@@ -906,8 +923,8 @@ function ClinicalDetailTab({ onRetry }) {
         <Card title="Volume by Panel Name" subtitle="TOX (top) vs PCR (bottom) — top 25">
           <HBarChart
             rows={panelRows}
-            color1={C.tox}
-            color2={C.pcr}
+            color1={DETAIL_COLORS.panel.tox}
+            color2={DETAIL_COLORS.panel.pcr}
             label1="TOX"
             label2="PCR"
             loading={panelQ.isFetching}
@@ -924,8 +941,8 @@ function ClinicalDetailTab({ onRetry }) {
         <Card title="Volume by Specimen Type" subtitle="TOX vs PCR per specimen category">
           <HBarChart
             rows={specRows}
-            color1={C.tox}
-            color2={C.pcr}
+            color1={DETAIL_COLORS.specimen.tox}
+            color2={DETAIL_COLORS.specimen.pcr}
             label1="TOX"
             label2="PCR"
             loading={specimenQ.isFetching}
@@ -949,8 +966,8 @@ function ClinicalDetailTab({ onRetry }) {
       <Card title="Volume by Technician (Run By)" subtitle="TOX vs PCR per technician — top 25">
         <HBarChart
           rows={runbyRows}
-          color1={C.tox}
-          color2={C.pcr}
+          color1={DETAIL_COLORS.technician.tox}
+          color2={DETAIL_COLORS.technician.pcr}
           label1="TOX"
           label2="PCR"
           loading={runbyQ.isFetching}
@@ -967,7 +984,7 @@ function ClinicalDetailTab({ onRetry }) {
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 const SUB_TABS = [
-  { id: 'weekly',   label: 'Weekly Overview'  },
+  { id: 'weekly',   label: 'Monthly Overview' },
   { id: 'clinics',  label: 'Clinic Breakdown' },
   { id: 'detail',   label: 'Clinical Detail'  },
 ];

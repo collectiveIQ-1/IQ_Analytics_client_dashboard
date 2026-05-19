@@ -23,6 +23,14 @@ export const clinicalApi = {
   getWeeklyAccounts: () =>
     api.get('/clinical/weekly-accounts'),
 
+  /** Monthly PCR + TOX totals — one point per month */
+  getMonthlyVolume: () =>
+    api.get('/clinical/monthly-volume'),
+
+  /** Monthly active + new clinic counts — one point per month */
+  getMonthlyAccounts: () =>
+    api.get('/clinical/monthly-accounts'),
+
   /** Per-clinic totals: PCR, TOX, grand total — for ranked bar + donut */
   getClinicSummary: () =>
     api.get('/clinical/clinic-summary'),

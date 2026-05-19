@@ -133,7 +133,7 @@ export default function SynapsesHomePage({ onNavigate }) {
   const activeAdj     = row3Expanded === 'adjustments'  ? (adjFull     ?? adjData)     : adjData;
 
   const donutTotal = (donutData || []).reduce((s, d) => s + (d.total_balance ?? 0), 0);
-  const over60Entry = (donutData || [])[0] ?? null;
+  const over60Entry = (donutData || []).find(d => d.bucket !== '30-60 & Current') ?? null;
   const over60Pct  = donutTotal > 0 && over60Entry
     ? ((over60Entry.total_balance / donutTotal) * 100).toFixed(1)
     : null;
