@@ -312,25 +312,32 @@ function rowToArray(row, headers) {
 
 /**
  * Query a full source table. Returns rows array (empty on error).
- * Uses pool.exportQuery: dedicated pg.Client, 5-min statement_timeout, no pool slot used.
- * LIMIT 100000 rows keeps each table query fast. Parallel fetch means total time ≈ slowest single table.
+ *
+ * Uses pool.connect() to borrow a client from the already-established pool.
+ * This reuses the same SSL / auth connection that all chart queries use,
+ * which is critical on EC2 where a fresh pg.Client (exportQuery) may fail
+ * to negotiate SSL and silently return empty data.
+ * Sets a 5-minute statement_timeout on the borrowed client for large tables.
  */
 async function fetchTable(schema, table) {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema) || !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(table)) {
     logger.error('[Export] Rejected unsafe identifier — schema="' + schema + '" table="' + table + '"');
     return [];
   }
+  const sql = 'SELECT * FROM ' + schema + '."' + table + '" LIMIT 100000';
+  logger.info('[Export] Fetching ' + schema + '."' + table + '" …');
+  const t0 = Date.now();
+  const client = await pool.connect();
   try {
-    logger.info('[Export] SELECT * FROM ' + schema + '."' + table + '" LIMIT 100000 ...');
-    const t0     = Date.now();
-    const result = await pool.exportQuery(
-      'SELECT * FROM ' + schema + '."' + table + '" LIMIT 100000'
-    );
-    logger.info('[Export] ' + schema + '."' + table + '" -> ' + result.rows.length + ' rows in ' + (Date.now() - t0) + 'ms');
+    await client.query('SET statement_timeout = 300000'); // 5-min limit for large tables
+    const result = await client.query(sql);
+    logger.info('[Export] ' + schema + '."' + table + '" → ' + result.rows.length + ' rows in ' + (Date.now() - t0) + 'ms');
     return result.rows;
   } catch (err) {
     logger.error('[Export] fetchTable FAILED ' + schema + '."' + table + '": ' + err.message);
     return [];
+  } finally {
+    client.release();
   }
 }
 
